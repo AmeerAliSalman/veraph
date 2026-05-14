@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BrandGraph</title>
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --nav-h: 56px;
+    --side-w: 220px;
+    --bg: #f8f8f7;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --text: #1a1a18;
+    --muted: #6b6b67;
+    --accent: #185FA5;
+    --accent-bg: #E6F1FB;
+    --accent-text: #0C447C;
+    --green: #3B6D11;
+    --green-bg: #EAF3DE;
+    --amber: #854F0B;
+    --amber-bg: #FAEEDA;
+    --purple: #534AB7;
+    --purple-bg: #EEEDFE;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  body { font-family: system-ui, sans-serif; font-size: 14px; color: var(--text); background: var(--bg); min-height: 100vh; }
+  nav { position: sticky; top: 0; z-index: 100; height: var(--nav-h); background: var(--surface); border-bottom: 0.5px solid var(--border); display: flex; align-items: center; padding: 0 1.25rem; gap: 1rem; }
+  .logo { font-size: 16px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 7px; }
+  .logo i { color: var(--accent); font-size: 20px; }
+  .logo span { font-weight: 400; color: var(--muted); }
+  nav .spacer { flex: 1; }
+  .badge { background: var(--accent-bg); color: var(--accent-text); font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
+  .layout { display: flex; min-height: calc(100vh - var(--nav-h)); }
+  aside { width: var(--side-w); background: var(--surface); border-right: 0.5px solid var(--border); padding: 1.25rem 0; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 1.25rem; cursor: pointer; color: var(--muted); font-size: 13.5px; transition: background 0.15s; border-left: 2px solid transparent; }
+  .nav-item i { font-size: 18px; flex-shrink: 0; }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { color: var(--accent); background: var(--accent-bg); border-left-color: var(--accent); font-weight: 500; }
+  .nav-section { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 1rem 1.25rem 0.25rem; }
+  main { flex: 1; padding: 1.75rem; overflow: auto; }
+  .tool-header { margin-bottom: 1.5rem; }
+  .tool-header h1 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+  .tool-header p { color: var(--muted); font-size: 13px; }
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+  .card + .card { margin-top: 1rem; }
+  .input-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+  input[type=text], textarea, select { width: 100%; padding: 8px 12px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13.5px; background: var(--bg); color: var(--text); outline: none; font-family: inherit; }
+  input[type=text]:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
+  textarea { resize: vertical; min-height: 120px; font-family: monospace; font-size: 12.5px; }
+  button.primary { padding: 8px 18px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 13.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  button.primary:hover { opacity: 0.9; }
+  button.secondary { padding: 8px 14px; background: var(--surface); color: var(--text); border: 0.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+  button.secondary:hover { background: var(--bg); }
+  .kg-entity { display: flex; gap: 1rem; align-items: flex-start; }
+  .kg-img { width: 80px; height: 80px; border-radius: var(--radius-sm); background: var(--bg); border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+  .kg-img i { font-size: 28px; color: var(--muted); }
+  .kg-info h2 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .kg-info .desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+  .tag { display: inline-block; background: var(--purple-bg); color: var(--purple); font-size: 11px; padding: 2px 8px; border-radius: 20px; margin-right: 4px; margin-bottom: 4px; }
+  .score-bar { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .score-bar .bar { flex: 1; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; border: 0.5px solid var(--border); }
+  .score-bar .fill { height: 100%; background: var(--accent); border-radius: 3px; }
+  .score-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .schema-types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+  .schema-type { background: var(--green-bg); color: var(--green); font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+  .validation-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .validation-item:last-child { border-bottom: none; }
+  .vbadge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+  .vbadge.ok { background: var(--green-bg); color: var(--green); }
+  .vbadge.warn { background: var(--amber-bg); color: var(--amber); }
+  .vbadge.error { background: #FCEBEB; color: #A32D2D; }
+  .val-text { font-size: 13px; line-height: 1.5; }
+  .val-text strong { font-weight: 500; }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .metric-card { background: var(--bg); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .metric-card .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .metric-card .value { font-size: 22px; font-weight: 500; }
+  .metric-card .delta { font-size: 11px; margin-top: 2px; }
+  .delta.up { color: var(--green); }
+  .delta.down { color: #A32D2D; }
+  .chart-wrap { position: relative; width: 100%; height: 200px; }
+  .entity-graph { position: relative; width: 100%; height: 320px; background: var(--bg); border-radius: var(--radius-sm); overflow: hidden; border: 0.5px solid var(--border); }
+  .entity-node { position: absolute; transform: translate(-50%, -50%); text-align: center; cursor: pointer; }
+  .entity-node .circle { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 4px; font-size: 11px; font-weight: 500; border: 2px solid transparent; transition: transform 0.2s; }
+  .entity-node:hover .circle { transform: scale(1.1); }
+  .entity-node.center .circle { width: 72px; height: 72px; font-size: 13px; }
+  .entity-node .nlabel { font-size: 10px; color: var(--muted); max-width: 64px; line-height: 1.3; }
+  .entity-node.center .nlabel { font-size: 11px; font-weight: 500; color: var(--text); }
+  svg.edges { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  .json-toggle { display: flex; gap: 8px; align-items: center; margin-top: 1rem; }
+  .json-block { background: #f4f3f0; border-radius: var(--radius-sm); padding: 12px; font-family: monospace; font-size: 11.5px; line-height: 1.6; color: #2c2c2a; margin-top: 8px; max-height: 180px; overflow: auto; border: 0.5px solid var(--border); display: none; }
+  .json-block.open { display: block; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+  .empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+  .empty i { font-size: 36px; display: block; margin-bottom: 8px; }
+  .divider { height: 0.5px; background: var(--border); margin: 1rem 0; }
+  .loading { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; padding: 1rem 0; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .api-note { font-size: 11.5px; color: var(--muted); background: var(--amber-bg); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
+  .api-note i { color: var(--amber); flex-shrink: 0; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><i class="ti ti-topology-star-3"></i> BrandGraph <span>/ SEO Intelligence</span></div>
+  <div class="spacer"></div>
+  <span class="badge">Live</span>
+</nav>
+
+<div class="layout">
+  <aside>
+    <div class="nav-section">Tools</div>
+    <div class="nav-item active" id="nav-kg" onclick="show('kg')"><i class="ti ti-topology-star-3"></i> Knowledge Graph</div>
+    <div class="nav-item" id="nav-schema" onclick="show('schema')"><i class="ti ti-code"></i> Schema Tester</div>
+    <div class="nav-item" id="nav-gsc" onclick="show('gsc')"><i class="ti ti-chart-line"></i> Search Console</div>
+    <div class="nav-item" id="nav-entity" onclick="show('entity')"><i class="ti ti-hierarchy-3"></i> Entity Explorer</div>
+    <div class="nav-section" style="margin-top:auto;">Account</div>
+    <div class="nav-item" id="nav-settings" onclick="show('settings')"><i class="ti ti-settings"></i> API Keys</div>
+  </aside>
+
+  <main>
+
+    <!-- KNOWLEDGE GRAPH -->
+    <div id="tool-kg">
+      <div class="tool-header">
+        <h1>Knowledge Graph Explorer</h1>
+        <p>Discover how Google represents any entity — person, brand, or organisation.</p>
+      </div>
+      <div class="card">
+        <div class="input-row">
+          <input type="text" id="kg-query" placeholder="Search entity e.g. Elon Musk, Nike, OpenAI…" onkeydown="if(event.key==='Enter')searchKG()" />
+          <button class="primary" onclick="searchKG()"><i class="ti ti-search"></i> Search</button>
+        </div>
+        <div class="btn-row">
+          <button class="secondary" onclick="loadKGDemo('Elon Musk')">Sample: Person</button>
+          <button class="secondary" onclick="loadKGDemo('Nike')">Sample: Brand</button>
+          <button class="secondary" onclick="loadKGDemo('OpenAI')">Sample: Organisation</button>
+        </div>
+      </div>
+      <div id="kg-result" style="margin-top:1rem;"></div>
+    </div>
+
+    <!-- SCHEMA TESTER -->
+    <div id="tool-schema" style="display:none;">
+      <div class="tool-header">
+        <h1>Schema Markup Tester</h1>
+        <p>Validate your JSON-LD schema and get structured feedback for search engines.</p>
+      </div>
+      <div class="row">
+        <div class="card" style="flex:1.2;">
+          <div style="font-size:13px;font-weight:500;margin-bottom:8px;">Paste JSON-LD schema</div>
+          <textarea id="schema-input" placeholder='{"@context":"https://schema.org","@type":"Person","name":"…"}'></textarea>
+          <div class="btn-row" style="margin-top:8px;">
+            <button class="primary" onclick="testSchema()"><i class="ti ti-check"></i> Validate</button>
+            <button class="secondary" onclick="loadSampleSchema('person')">Sample: Person</button>
+            <button class="secondary" onclick="loadSampleSchema('article')">Sample: Article</button>
+          </div>
+        </div>
+        <div id="schema-result" class="card" style="flex:1;">
+          <div class="empty"><i class="ti ti-code"></i>Paste a schema and click Validate</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEARCH CONSOLE -->
+    <div id="tool-gsc" style="display:none;">
+      <div class="tool-header">
+        <h1>Search Console Insights</h1>
+        <p>Visualise performance data from Google Search Console.</p>
+      </div>
+      <div class="api-note"><i class="ti ti-info-circle"></i> Connect via OAuth in Settings. Showing demo data below.</div>
+      <div class="metric-grid">
+        <div class="metric-card"><div class="label">Total Clicks</div><div class="value">24,182</div><div class="delta up">↑ 12% vs last period</div></div>
+        <div class="metric-card"><div class="label">Impressions</div><div class="value">318,540</div><div class="delta up">↑ 8%</div></div>
+        <div class="metric-card"><div class="label">Avg CTR</div><div class="value">7.6%</div><div class="delta up">↑ 0.4pp</div></div>
+        <div class="metric-card"><div class="label">Avg Position</div><div class="value">11.2</div><div class="delta down">↓ 1.1</div></div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:500;margin-bottom:12px;">Clicks & Impressions — Last 90 Days</div>
+        <div class="chart-wrap"><canvas id="gscChart" aria-label="Line chart showing clicks and impressions over 90 days">Clicks and impressions trend over 90 days.</canvas></div>
+      </div>
+      <div class="card" style="margin-top:1rem;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Top Queries</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead><tr style="color:var(--muted);text-align:left;border-bottom:0.5px solid var(--border);">
+            <th style="padding:6px 0;font-weight:500;">Query</th>
+            <th style="padding:6px 0;font-weight:500;">Clicks</th>
+            <th style="padding:6px 0;font-weight:500;">Impressions</th>
+            <th style="padding:6px 0;font-weight:500;">CTR</th>
+            <th style="padding:6px 0;font-weight:500;">Position</th>
+          </tr></thead>
+          <tbody id="gsc-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ENTITY EXPLORER -->
+    <div id="tool-entity" style="display:none;">
+      <div class="tool-header">
+        <h1>Entity Explorer</h1>
+        <p>Map entity relationships across Wikidata and DBpedia.</p>
+      </div>
+      <div class="card">
+        <div class="input-row">
+          <input type="text" id="entity-query" placeholder="Search entity e.g. Elon Musk, Tesla, OpenAI…" onkeydown="if(event.key==='Enter')exploreEntity()" />
+          <button class="primary" onclick="exploreEntity()"><i class="ti ti-hierarchy-3"></i> Explore</button>
+        </div>
+        <div class="btn-row">
+          <button class="secondary" onclick="loadEntityDemo('person')">Sample: Person</button>
+          <button class="secondary" onclick="loadEntityDemo('company')">Sample: Company</button>
+        </div>
+      </div>
+      <div id="entity-result" style="margin-top:1rem;"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="tool-settings" style="display:none;">
+      <div class="tool-header">
+        <h1>API Keys</h1>
+        <p>Connect your API credentials to enable live data.</p>
+      </div>
+      <div class="card">
+        <div style="display:flex;flex-direction:column;gap:1.25rem;">
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-topology-star-3" style="color:var(--accent);"></i> Google Knowledge Graph API Key</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Already added to Netlify environment variables as GOOGLE_KG_API_KEY</div>
+            <span style="font-size:12px;background:var(--green-bg);color:var(--green);padding:3px 10px;border-radius:20px;">Connected via Netlify</span>
+          </div>
+          <div class="divider"></div>
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-chart-line" style="color:var(--accent);"></i> Google Search Console OAuth</div>
+            <button class="secondary"><i class="ti ti-brand-google"></i> Connect with Google</button>
+          </div>
+          <div class="divider"></div>
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-hierarchy-3" style="color:var(--accent);"></i> Wikidata / DBpedia</div>
+            <span style="font-size:12px;background:var(--green-bg);color:var(--green);padding:3px 10px;border-radius:20px;">Public API — no key needed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+
+// ── NAV ──────────────────────────────────────────────
+function show(tool) {
+  ['kg','schema','gsc','entity','settings'].forEach(t => {
+    document.getElementById('tool-'+t).style.display = t === tool ? '' : 'none';
+    document.getElementById('nav-'+t).classList.toggle('active', t === tool);
+  });
+  if (tool === 'gsc') setTimeout(renderGSC, 100);
+}
+
+// ── KNOWLEDGE GRAPH ───────────────────────────────────
+function loadKGDemo(name) {
+  document.getElementById('kg-query').value = name;
+  searchKG();
+}
+
+async function searchKG() {
+  const q = document.getElementById('kg-query').value.trim();
+  if (!q) return;
+  const r = document.getElementById('kg-result');
+  r.innerHTML = `<div class="card"><div class="loading"><div class="spinner"></div>Searching Knowledge Graph…</div></div>`;
+  try {
+    const res = await fetch('/.netlify/functions/knowledge-graph?query=' + encodeURIComponent(q));
+    const data = await res.json();
+    const items = data.itemListElement;
+    if (!items || items.length === 0) {
+      r.innerHTML = `<div class="card"><div class="empty"><i class="ti ti-search"></i>No results found for "${q}"</div></div>`;
+      return;
+    }
+    const entity = items[0].result;
+    const name = entity.name || q;
+    const desc = entity.detailedDescription?.articleBody || entity.description || 'No description available.';
+    const types = entity['@type'] || [];
+    const score = items[0].resultScore ? items[0].resultScore.toFixed(2) : 'N/A';
+    const pct = Math.min(Math.round((items[0].resultScore || 0.5) * 100), 100);
+    const sameAs = [];
+    if (entity.url) sameAs.push(entity.url);
+    if (entity.detailedDescription?.url) sameAs.push(entity.detailedDescription.url);
+    const raw = JSON.stringify(entity, null, 2);
+    r.innerHTML = `
+      <div class="card">
+        <div class="kg-entity">
+          <div class="kg-img"><i class="ti ti-user"></i></div>
+          <div class="kg-info">
+            <h2>${name}</h2>
+            <div>${types.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+            <div class="desc">${desc}</div>
+            <div class="score-bar">
+              <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+              <span class="score-label">Relevance score: ${score}</span>
+            </div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:500;">sameAs links</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          ${sameAs.length ? sameAs.map(u => `<a href="${u}" target="_blank" style="font-size:12.5px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:4px;"><i class="ti ti-external-link" style="font-size:13px;"></i>${u}</a>`).join('') : '<span style="font-size:12.5px;color:var(--muted);">No sameAs links found</span>'}
+        </div>
+        <div class="json-toggle">
+          <button class="secondary" onclick="toggleJSON()"><i class="ti ti-code"></i> Raw JSON</button>
+          <span style="font-size:12px;color:var(--muted);">Toggle API response</span>
+        </div>
+        <pre class="json-block" id="json-block">${raw}</pre>
+      </div>`;
+  } catch (err) {
+    r.innerHTML = `<div class="card"><div class="empty"><i class="ti ti-alert-circle"></i>Could not connect. Check your API key in Netlify environment variables.</div></div>`;
+  }
+}
+
+function toggleJSON() {
+  document.getElementById('json-block').classList.toggle('open');
+}
+
+// ── SCHEMA TESTER ─────────────────────────────────────
+const schemaSamples = {
+  person: `{\n  "@context": "https://schema.org",\n  "@type": "Person",\n  "name": "Jane Doe",\n  "url": "https://janedoe.com",\n  "image": "https://janedoe.com/photo.jpg",\n  "jobTitle": "Marketing Consultant",\n  "sameAs": [\n    "https://twitter.com/janedoe",\n    "https://linkedin.com/in/janedoe"\n  ]\n}`,
+  article: `{\n  "@context": "https://schema.org",\n  "@type": "Article",\n  "headline": "How to Build Your Personal Brand",\n  "author": { "@type": "Person", "name": "Jane Doe" },\n  "datePublished": "2025-01-15",\n  "image": "https://janedoe.com/article.jpg"\n}`
+};
+
+function loadSampleSchema(t) {
+  document.getElementById('schema-input').value = schemaSamples[t];
+}
+
+function testSchema() {
+  const v = document.getElementById('schema-input').value.trim();
+  const el = document.getElementById('schema-result');
+  if (!v) { el.innerHTML = `<div class="empty"><i class="ti ti-alert-circle"></i>No schema to validate</div>`; return; }
+  el.innerHTML = `<div class="loading"><div class="spinner"></div>Validating…</div>`;
+  setTimeout(() => {
+    let parsed, types = [], checks = [];
+    try {
+      parsed = JSON.parse(v);
+      const t = parsed['@type'] || 'Unknown';
+      types = Array.isArray(t) ? t : [t];
+      const hasCtx = !!parsed['@context'];
+      const hasName = !!parsed.name || !!parsed.headline;
+      const hasSameAs = !!parsed.sameAs;
+      const hasImage = !!parsed.image;
+      checks = [
+        { status: hasCtx ? 'ok' : 'error', title: '@context defined', msg: hasCtx ? 'schema.org context found — good.' : 'Missing @context. Add "https://schema.org".' },
+        { status: 'ok', title: '@type present', msg: `Type is "${types.join(', ')}" — recognised by Google.` },
+        { status: hasName ? 'ok' : 'warn', title: 'Name / headline', msg: hasName ? 'Name field found.' : 'No name or headline field found. Recommended for all entities.' },
+        { status: hasImage ? 'ok' : 'warn', title: 'Image property', msg: hasImage ? 'Image URL present.' : 'No image found. Adding one improves rich result eligibility.' },
+        { status: hasSameAs ? 'ok' : 'warn', title: 'sameAs links', msg: hasSameAs ? 'sameAs links found — helps Google confirm your entity.' : 'No sameAs links. Add Wikipedia or Wikidata URLs to strengthen entity confidence.' }
+      ];
+    } catch(e) {
+      el.innerHTML = `<div style="color:#A32D2D;display:flex;align-items:center;gap:6px;font-size:13px;"><i class="ti ti-alert-circle"></i>Invalid JSON: ${e.message}</div>`;
+      return;
+    }
+    const err = checks.filter(c => c.status === 'error').length;
+    const warn = checks.filter(c => c.status === 'warn').length;
+    el.innerHTML = `
+      <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Detected Types</div>
+      <div class="schema-types">${types.map(t => `<div class="schema-type"><i class="ti ti-check"></i>${t}</div>`).join('')}</div>
+      <div class="divider"></div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:6px;">Validation Results <span style="font-weight:400;color:var(--muted);font-size:12px;margin-left:8px;">${err} errors · ${warn} warnings</span></div>
+      ${checks.map(c => `<div class="validation-item">
+        <span class="vbadge ${c.status}">${c.status==='ok'?'Pass':c.status==='warn'?'Warn':'Fail'}</span>
+        <div class="val-text"><strong>${c.title}</strong><br>${c.msg}</div>
+      </div>`).join('')}`;
+  }, 700);
+}
+
+// ── SEARCH CONSOLE ────────────────────────────────────
+const gscQueries = [
+  { q:'personal brand seo guide', clicks:1240, impr:18400, ctr:'6.7%', pos:'4.2' },
+  { q:'knowledge graph optimization', clicks:980, impr:12200, ctr:'8.0%', pos:'3.1' },
+  { q:'schema markup for persons', clicks:760, impr:9800, ctr:'7.8%', pos:'5.6' },
+  { q:'google entity seo', clicks:540, impr:7400, ctr:'7.3%', pos:'8.4' },
+  { q:'personal branding digital marketing', clicks:480, impr:11200, ctr:'4.3%', pos:'12.1' },
+];
+let chartInst = null;
+function renderGSC() {
+  if (chartInst) { chartInst.destroy(); chartInst = null; }
+  const tbody = document.getElementById('gsc-table');
+  if (tbody) tbody.innerHTML = gscQueries.map(r => `<tr style="border-bottom:0.5px solid var(--border);">
+    <td style="padding:8px 0;color:var(--accent);">${r.q}</td>
+    <td style="padding:8px 0;">${r.clicks.toLocaleString()}</td>
+    <td style="padding:8px 0;">${r.impr.toLocaleString()}</td>
+    <td style="padding:8px 0;">${r.ctr}</td>
+    <td style="padding:8px 0;">${r.pos}</td>
+  </tr>`).join('');
+  const c = document.getElementById('gscChart');
+  if (!c) return;
+  const labels = Array.from({length:12},(_,i) => { const d = new Date(2025,i,1); return d.toLocaleString('default',{month:'short'}); });
+  const clicks = [1800,2100,1950,2400,2700,2300,2600,2900,2750,3100,3400,3250];
+  const impr = [24000,27000,25000,31000,34000,30000,33000,37000,35000,39000,43000,41000];
+  chartInst = new Chart(c, {
+    type: 'line',
+    data: { labels, datasets: [
+      { label:'Clicks', data:clicks, borderColor:'#185FA5', backgroundColor:'rgba(24,95,165,0.08)', fill:true, tension:0.4, pointRadius:3, borderWidth:2 },
+      { label:'Impressions / 10', data:impr.map(v => Math.round(v/10)), borderColor:'#3B6D11', backgroundColor:'rgba(59,109,17,0.06)', fill:true, tension:0.4, pointRadius:3, borderWidth:2, borderDash:[4,3] }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{grid:{color:'rgba(0,0,0,0.05)'}}, y:{grid:{color:'rgba(0,0,0,0.05)'}} } }
+  });
+}
+
+// ── ENTITY EXPLORER ───────────────────────────────────
+const entityData = {
+  person: {
+    center: { label:'Elon Musk', color:'#185FA5', bg:'#E6F1FB' },
+    nodes: [
+      { label:'Tesla', color:'#3B6D11', bg:'#EAF3DE', x:20, y:20 },
+      { label:'SpaceX', color:'#534AB7', bg:'#EEEDFE', x:78, y:18 },
+      { label:'xAI', color:'#854F0B', bg:'#FAEEDA', x:82, y:72 },
+      { label:'Entrepreneur', color:'#6b6b67', bg:'#f1efe8', x:18, y:75 },
+      { label:'South Africa', color:'#A32D2D', bg:'#FCEBEB', x:50, y:88 },
+    ]
+  },
+  company: {
+    center: { label:'OpenAI', color:'#185FA5', bg:'#E6F1FB' },
+    nodes: [
+      { label:'Sam Altman', color:'#534AB7', bg:'#EEEDFE', x:20, y:20 },
+      { label:'GPT-4', color:'#3B6D11', bg:'#EAF3DE', x:78, y:18 },
+      { label:'Microsoft', color:'#854F0B', bg:'#FAEEDA', x:82, y:72 },
+      { label:'AI Research', color:'#6b6b67', bg:'#f1efe8', x:18, y:75 },
+      { label:'San Francisco', color:'#A32D2D', bg:'#FCEBEB', x:50, y:88 },
+    ]
+  }
+};
+
+function exploreEntity() {
+  const q = document.getElementById('entity-query').value.trim();
+  if (!q) return;
+  const r = document.getElementById('entity-result');
+  r.innerHTML = `<div class="card"><div class="loading"><div class="spinner"></div>Fetching entity graph…</div></div>`;
+  setTimeout(() => renderEntity(entityData.person), 900);
+}
+
+function loadEntityDemo(type) {
+  document.getElementById('entity-query').value = entityData[type].center.label;
+  const r = document.getElementById('entity-result');
+  r.innerHTML = `<div class="card"><div class="loading"><div class="spinner"></div>Fetching entity graph…</div></div>`;
+  setTimeout(() => renderEntity(entityData[type]), 800);
+}
+
+function renderEntity(d) {
+  const cx = 50, cy = 50;
+  const nodeHTML = d.nodes.map(n => `
+    <div class="entity-node" style="left:${n.x}%;top:${n.y}%;">
+      <div class="circle" style="background:${n.bg};color:${n.color};border-color:${n.color}20;">${n.label.slice(0,2)}</div>
+      <div class="nlabel">${n.label}</div>
+    </div>`).join('');
+  const svgLines = d.nodes.map(n => `
+    <line x1="${cx}%" y1="${cy}%" x2="${n.x}%" y2="${n.y}%" stroke="rgba(0,0,0,0.12)" stroke-width="1.5" stroke-dasharray="4 3"/>`).join('');
+  document.getElementById('entity-result').innerHTML = `
+    <div class="card">
+      <div class="entity-graph">
+        <svg class="edges">${svgLines}</svg>
+        <div class="entity-node center" style="left:${cx}%;top:${cy}%;">
+          <div class="circle" style="background:${d.center.bg};color:${d.center.color};border-color:${d.center.color};">${d.center.label.slice(0,2)}</div>
+          <div class="nlabel">${d.center.label}</div>
+        </div>
+        ${nodeHTML}
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:8px;">Connected entities</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${d.nodes.map(n => `<span style="background:${n.bg};color:${n.color};font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;">${n.label}</span>`).join('')}
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:12.5px;color:var(--muted);display:flex;gap:1rem;flex-wrap:wrap;">
+        <span><i class="ti ti-external-link" style="font-size:13px;vertical-align:-2px;"></i> <a href="#" style="color:var(--accent);text-decoration:none;">View on Wikidata</a></span>
+        <span><i class="ti ti-external-link" style="font-size:13px;vertical-align:-2px;"></i> <a href="#" style="color:var(--accent);text-decoration:none;">View on DBpedia</a></span>
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
