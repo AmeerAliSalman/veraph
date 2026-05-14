@@ -1,484 +1,656 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>BrandGraph</title>
-<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Veraph — The Search Intelligence Platform for Personal Brands</title>
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --nav-h: 56px;
-    --side-w: 220px;
-    --bg: #f8f8f7;
-    --surface: #ffffff;
-    --border: rgba(0,0,0,0.1);
-    --text: #1a1a18;
-    --muted: #6b6b67;
-    --accent: #185FA5;
-    --accent-bg: #E6F1FB;
-    --accent-text: #0C447C;
-    --green: #3B6D11;
-    --green-bg: #EAF3DE;
-    --amber: #854F0B;
-    --amber-bg: #FAEEDA;
-    --purple: #534AB7;
-    --purple-bg: #EEEDFE;
-    --radius: 10px;
-    --radius-sm: 6px;
-  }
-  body { font-family: system-ui, sans-serif; font-size: 14px; color: var(--text); background: var(--bg); min-height: 100vh; }
-  nav { position: sticky; top: 0; z-index: 100; height: var(--nav-h); background: var(--surface); border-bottom: 0.5px solid var(--border); display: flex; align-items: center; padding: 0 1.25rem; gap: 1rem; }
-  .logo { font-size: 16px; font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 7px; }
-  .logo i { color: var(--accent); font-size: 20px; }
-  .logo span { font-weight: 400; color: var(--muted); }
-  nav .spacer { flex: 1; }
-  .badge { background: var(--accent-bg); color: var(--accent-text); font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
-  .layout { display: flex; min-height: calc(100vh - var(--nav-h)); }
-  aside { width: var(--side-w); background: var(--surface); border-right: 0.5px solid var(--border); padding: 1.25rem 0; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 1.25rem; cursor: pointer; color: var(--muted); font-size: 13.5px; transition: background 0.15s; border-left: 2px solid transparent; }
-  .nav-item i { font-size: 18px; flex-shrink: 0; }
-  .nav-item:hover { background: var(--bg); color: var(--text); }
-  .nav-item.active { color: var(--accent); background: var(--accent-bg); border-left-color: var(--accent); font-weight: 500; }
-  .nav-section { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 1rem 1.25rem 0.25rem; }
-  main { flex: 1; padding: 1.75rem; overflow: auto; }
-  .tool-header { margin-bottom: 1.5rem; }
-  .tool-header h1 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
-  .tool-header p { color: var(--muted); font-size: 13px; }
-  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
-  .card + .card { margin-top: 1rem; }
-  .input-row { display: flex; gap: 8px; margin-bottom: 1rem; }
-  input[type=text], textarea, select { width: 100%; padding: 8px 12px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13.5px; background: var(--bg); color: var(--text); outline: none; font-family: inherit; }
-  input[type=text]:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
-  textarea { resize: vertical; min-height: 120px; font-family: monospace; font-size: 12.5px; }
-  button.primary { padding: 8px 18px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 13.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-  button.primary:hover { opacity: 0.9; }
-  button.secondary { padding: 8px 14px; background: var(--surface); color: var(--text); border: 0.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
-  button.secondary:hover { background: var(--bg); }
-  .kg-entity { display: flex; gap: 1rem; align-items: flex-start; }
-  .kg-img { width: 80px; height: 80px; border-radius: var(--radius-sm); background: var(--bg); border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-  .kg-img i { font-size: 28px; color: var(--muted); }
-  .kg-info h2 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
-  .kg-info .desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
-  .tag { display: inline-block; background: var(--purple-bg); color: var(--purple); font-size: 11px; padding: 2px 8px; border-radius: 20px; margin-right: 4px; margin-bottom: 4px; }
-  .score-bar { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-  .score-bar .bar { flex: 1; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; border: 0.5px solid var(--border); }
-  .score-bar .fill { height: 100%; background: var(--accent); border-radius: 3px; }
-  .score-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
-  .schema-types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
-  .schema-type { background: var(--green-bg); color: var(--green); font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
-  .validation-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
-  .validation-item:last-child { border-bottom: none; }
-  .vbadge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
-  .vbadge.ok { background: var(--green-bg); color: var(--green); }
-  .vbadge.warn { background: var(--amber-bg); color: var(--amber); }
-  .vbadge.error { background: #FCEBEB; color: #A32D2D; }
-  .val-text { font-size: 13px; line-height: 1.5; }
-  .val-text strong { font-weight: 500; }
-  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
-  .metric-card { background: var(--bg); border-radius: var(--radius-sm); padding: 12px 14px; }
-  .metric-card .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
-  .metric-card .value { font-size: 22px; font-weight: 500; }
-  .metric-card .delta { font-size: 11px; margin-top: 2px; }
-  .delta.up { color: var(--green); }
-  .delta.down { color: #A32D2D; }
-  .chart-wrap { position: relative; width: 100%; height: 200px; }
-  .entity-graph { position: relative; width: 100%; height: 320px; background: var(--bg); border-radius: var(--radius-sm); overflow: hidden; border: 0.5px solid var(--border); }
-  .entity-node { position: absolute; transform: translate(-50%, -50%); text-align: center; cursor: pointer; }
-  .entity-node .circle { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 4px; font-size: 11px; font-weight: 500; border: 2px solid transparent; transition: transform 0.2s; }
-  .entity-node:hover .circle { transform: scale(1.1); }
-  .entity-node.center .circle { width: 72px; height: 72px; font-size: 13px; }
-  .entity-node .nlabel { font-size: 10px; color: var(--muted); max-width: 64px; line-height: 1.3; }
-  .entity-node.center .nlabel { font-size: 11px; font-weight: 500; color: var(--text); }
-  svg.edges { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-  .json-toggle { display: flex; gap: 8px; align-items: center; margin-top: 1rem; }
-  .json-block { background: #f4f3f0; border-radius: var(--radius-sm); padding: 12px; font-family: monospace; font-size: 11.5px; line-height: 1.6; color: #2c2c2a; margin-top: 8px; max-height: 180px; overflow: auto; border: 0.5px solid var(--border); display: none; }
-  .json-block.open { display: block; }
-  .row { display: flex; gap: 10px; }
-  .row > * { flex: 1; }
-  .empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
-  .empty i { font-size: 36px; display: block; margin-bottom: 8px; }
-  .divider { height: 0.5px; background: var(--border); margin: 1rem 0; }
-  .loading { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; padding: 1rem 0; }
-  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .api-note { font-size: 11.5px; color: var(--muted); background: var(--amber-bg); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
-  .api-note i { color: var(--amber); flex-shrink: 0; }
-  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --dark:#0e0e0d;
+  --dark2:#1a1a18;
+  --dark3:#242422;
+  --surface:#ffffff;
+  --bg:#f8f8f7;
+  --border:rgba(0,0,0,0.08);
+  --border-light:rgba(255,255,255,0.1);
+  --text:#1a1a18;
+  --muted:#6b6b67;
+  --accent:#185FA5;
+  --accent-bg:#E6F1FB;
+  --accent-light:#4a8fd4;
+  --green:#3B6D11;
+  --green-bg:#EAF3DE;
+  --purple:#534AB7;
+  --purple-bg:#EEEDFE;
+  --amber:#854F0B;
+  --amber-bg:#FAEEDA;
+  --radius:10px;
+  --radius-sm:6px;
+  --radius-lg:16px;
+}
+html{scroll-behavior:smooth}
+body{font-family:system-ui,-apple-system,sans-serif;font-size:15px;color:var(--text);background:var(--surface);line-height:1.6}
+
+/* HEADER */
+header{position:fixed;top:0;left:0;right:0;z-index:200;height:60px;display:flex;align-items:center;padding:0 2rem;background:rgba(14,14,13,0.95);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border-light)}
+.logo{font-size:18px;font-weight:600;color:#fff;letter-spacing:-0.3px;display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo-dot{width:8px;height:8px;background:var(--accent-light);border-radius:50%}
+nav.main{display:flex;align-items:center;gap:2rem;margin-left:3rem}
+nav.main a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:14px;transition:color 0.2s}
+nav.main a:hover{color:#fff}
+header .spacer{flex:1}
+.btn-outline{padding:7px 18px;border:0.5px solid rgba(255,255,255,0.25);border-radius:var(--radius-sm);color:#fff;font-size:13.5px;cursor:pointer;background:transparent;text-decoration:none;transition:border-color 0.2s}
+.btn-outline:hover{border-color:rgba(255,255,255,0.6)}
+.btn-primary{padding:7px 18px;border:none;border-radius:var(--radius-sm);color:#fff;font-size:13.5px;cursor:pointer;background:var(--accent);text-decoration:none;margin-left:8px;transition:opacity 0.2s}
+.btn-primary:hover{opacity:0.85}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* ── HOMEPAGE ── */
+.hero{background:var(--dark);padding:140px 2rem 100px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(24,95,165,0.15) 0%,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(24,95,165,0.15);border:0.5px solid rgba(24,95,165,0.3);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--accent-light);margin-bottom:2rem}
+.hero h1{font-size:clamp(36px,5vw,62px);font-weight:600;color:#fff;line-height:1.1;letter-spacing:-1px;margin-bottom:1.25rem;max-width:800px;margin-left:auto;margin-right:auto}
+.hero h1 em{font-style:normal;color:var(--accent-light)}
+.hero p{font-size:18px;color:rgba(255,255,255,0.55);max-width:520px;margin:0 auto 2.5rem;line-height:1.6}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-hero{padding:13px 28px;border-radius:var(--radius-sm);font-size:15px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn-hero.solid{background:var(--accent);color:#fff;border:none}
+.btn-hero.solid:hover{opacity:0.9}
+.btn-hero.ghost{background:transparent;color:rgba(255,255,255,0.75);border:0.5px solid rgba(255,255,255,0.2)}
+.btn-hero.ghost:hover{border-color:rgba(255,255,255,0.5);color:#fff}
+.hero-stats{display:flex;justify-content:center;gap:3rem;margin-top:4rem;padding-top:3rem;border-top:0.5px solid rgba(255,255,255,0.08)}
+.stat{text-align:center}
+.stat .num{font-size:28px;font-weight:600;color:#fff}
+.stat .lbl{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px}
+
+/* PROBLEM SECTION */
+.section{padding:80px 2rem}
+.section-inner{max-width:1100px;margin:0 auto}
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-weight:500;margin-bottom:12px}
+.section-title{font-size:clamp(26px,3vw,38px);font-weight:600;letter-spacing:-0.5px;line-height:1.2;margin-bottom:1rem}
+.section-sub{font-size:16px;color:var(--muted);max-width:560px;line-height:1.6}
+.problem-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:3rem}
+.problem-item{background:var(--surface);padding:2rem;display:flex;gap:1rem}
+.problem-icon{width:40px;height:40px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
+.problem-icon.red{background:#FCEBEB;color:#A32D2D}
+.problem-icon.amber{background:var(--amber-bg);color:var(--amber)}
+.problem-icon.purple{background:var(--purple-bg);color:var(--purple)}
+.problem-item h3{font-size:15px;font-weight:500;margin-bottom:4px}
+.problem-item p{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* FEATURES */
+.features-bg{background:var(--bg)}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem;margin-top:3rem}
+.feature-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.75rem;transition:border-color 0.2s}
+.feature-card:hover{border-color:rgba(24,95,165,0.3)}
+.feature-icon{width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:1rem}
+.feature-card h3{font-size:15px;font-weight:500;margin-bottom:6px}
+.feature-card p{font-size:13px;color:var(--muted);line-height:1.55}
+.feature-tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:10px;font-weight:500}
+
+/* HOW IT WORKS */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2rem;margin-top:3rem;counter-reset:steps}
+.step{position:relative;padding-left:1rem}
+.step-num{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.step h3{font-size:16px;font-weight:500;margin-bottom:6px}
+.step p{font-size:13px;color:var(--muted);line-height:1.55}
+
+/* DARK CTA BAND */
+.cta-band{background:var(--dark);padding:80px 2rem;text-align:center}
+.cta-band h2{font-size:clamp(24px,3vw,38px);font-weight:600;color:#fff;margin-bottom:1rem;letter-spacing:-0.5px}
+.cta-band p{font-size:16px;color:rgba(255,255,255,0.5);margin-bottom:2rem}
+
+/* ── SOLUTIONS ── */
+.solutions-hero{background:var(--dark);padding:120px 2rem 80px;text-align:center}
+.solutions-hero h1{font-size:clamp(28px,4vw,48px);font-weight:600;color:#fff;margin-bottom:1rem;letter-spacing:-0.5px}
+.solutions-hero p{font-size:17px;color:rgba(255,255,255,0.5);max-width:500px;margin:0 auto}
+.solution-block{padding:80px 2rem;border-bottom:0.5px solid var(--border)}
+.solution-block:nth-child(even){background:var(--bg)}
+.solution-inner{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
+.solution-inner.flip{direction:rtl}
+.solution-inner.flip>*{direction:ltr}
+.solution-num{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px}
+.solution-block h2{font-size:clamp(22px,2.5vw,30px);font-weight:600;margin-bottom:1rem;letter-spacing:-0.3px}
+.solution-block p{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:1.25rem}
+.solution-points{display:flex;flex-direction:column;gap:8px}
+.solution-point{display:flex;align-items:flex-start;gap:8px;font-size:13.5px}
+.solution-point i{color:var(--accent);margin-top:2px;flex-shrink:0}
+.solution-visual{background:var(--dark2);border-radius:var(--radius-lg);padding:1.5rem;border:0.5px solid rgba(255,255,255,0.06)}
+.vis-bar{height:8px;border-radius:4px;margin-bottom:10px;background:rgba(255,255,255,0.08)}
+.vis-bar.filled{background:var(--accent)}
+.vis-bar.half{background:var(--accent-light);opacity:0.6;width:65%}
+.vis-bar.third{background:var(--accent-light);opacity:0.4;width:40%}
+.vis-label{font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:6px}
+.vis-entity{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.04);border-radius:var(--radius-sm);margin-bottom:8px;border:0.5px solid rgba(255,255,255,0.06)}
+.vis-entity .dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.vis-entity .info{flex:1}
+.vis-entity .name{font-size:12px;color:rgba(255,255,255,0.8);font-weight:500}
+.vis-entity .type{font-size:10px;color:rgba(255,255,255,0.35)}
+.vis-score{font-size:11px;color:var(--accent-light)}
+.schema-vis{font-family:monospace;font-size:11px;color:rgba(255,255,255,0.5);line-height:1.8}
+.schema-vis .key{color:#7dd3fc}
+.schema-vis .val{color:#86efac}
+.schema-vis .ok{color:#4ade80;font-size:10px;margin-left:8px}
+.schema-vis .warn{color:#fbbf24;font-size:10px;margin-left:8px}
+.node-vis{position:relative;height:180px}
+.node-vis svg{width:100%;height:100%}
+
+/* ── PRICING ── */
+.pricing-hero{background:var(--dark);padding:120px 2rem 80px;text-align:center}
+.pricing-hero h1{font-size:clamp(28px,4vw,48px);font-weight:600;color:#fff;margin-bottom:1rem;letter-spacing:-0.5px}
+.pricing-hero p{font-size:17px;color:rgba(255,255,255,0.5);max-width:460px;margin:0 auto}
+.pricing-section{padding:80px 2rem}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;max-width:960px;margin:3rem auto 0}
+.plan{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:2rem;position:relative}
+.plan.featured{border:2px solid var(--accent)}
+.plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;padding:3px 14px;border-radius:20px;white-space:nowrap;font-weight:500}
+.plan-name{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em}
+.plan-price{font-size:40px;font-weight:600;letter-spacing:-1px;margin-bottom:4px}
+.plan-price span{font-size:16px;font-weight:400;color:var(--muted)}
+.plan-desc{font-size:13px;color:var(--muted);margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:0.5px solid var(--border)}
+.plan-features{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.plan-feature{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.plan-feature i{font-size:16px}
+.plan-feature i.yes{color:var(--green)}
+.plan-feature i.no{color:var(--muted)}
+.plan-btn{width:100%;padding:11px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;text-align:center}
+.plan-btn.solid{background:var(--accent);color:#fff;border:none}
+.plan-btn.outline{background:transparent;color:var(--text);border:0.5px solid var(--border)}
+.plan-btn:hover{opacity:0.85}
+.faq{max-width:700px;margin:4rem auto 0}
+.faq h2{font-size:24px;font-weight:600;margin-bottom:2rem;text-align:center}
+.faq-item{border-bottom:0.5px solid var(--border);padding:1.25rem 0}
+.faq-item h3{font-size:15px;font-weight:500;margin-bottom:6px}
+.faq-item p{font-size:13.5px;color:var(--muted);line-height:1.6}
+
+/* ── ABOUT ── */
+.about-hero{background:var(--dark);padding:120px 2rem 80px;text-align:center}
+.about-hero h1{font-size:clamp(28px,4vw,48px);font-weight:600;color:#fff;margin-bottom:1rem;letter-spacing:-0.5px}
+.about-hero p{font-size:17px;color:rgba(255,255,255,0.5);max-width:560px;margin:0 auto}
+.about-section{padding:80px 2rem}
+.about-inner{max-width:720px;margin:0 auto}
+.about-inner h2{font-size:26px;font-weight:600;margin-bottom:1rem;letter-spacing:-0.3px}
+.about-inner p{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:1.25rem}
+.values-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:3rem}
+.value-card{background:var(--bg);border-radius:var(--radius);padding:1.5rem}
+.value-card i{font-size:24px;color:var(--accent);margin-bottom:10px;display:block}
+.value-card h3{font-size:14px;font-weight:500;margin-bottom:4px}
+.value-card p{font-size:13px;color:var(--muted);line-height:1.5}
+.who-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:2rem}
+.who-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;display:flex;align-items:flex-start;gap:10px}
+.who-card i{font-size:20px;color:var(--accent);flex-shrink:0;margin-top:2px}
+.who-card h3{font-size:14px;font-weight:500;margin-bottom:2px}
+.who-card p{font-size:12.5px;color:var(--muted)}
+
+/* FOOTER */
+footer{background:var(--dark);padding:3rem 2rem 2rem;border-top:0.5px solid rgba(255,255,255,0.06)}
+.footer-inner{max-width:1100px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;margin-bottom:3rem}
+.footer-brand .logo{margin-bottom:10px;display:inline-flex}
+.footer-brand p{font-size:13px;color:rgba(255,255,255,0.35);line-height:1.6;max-width:220px;margin-top:8px}
+.footer-col h4{font-size:12px;font-weight:500;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px}
+.footer-col a{display:block;font-size:13px;color:rgba(255,255,255,0.35);text-decoration:none;margin-bottom:8px;transition:color 0.2s;cursor:pointer}
+.footer-col a:hover{color:rgba(255,255,255,0.75)}
+.footer-bottom{border-top:0.5px solid rgba(255,255,255,0.06);padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center}
+.footer-bottom p{font-size:12px;color:rgba(255,255,255,0.25)}
+
+/* UTILS */
+.text-center{text-align:center}
+.mt-2{margin-top:2rem}
+@media(max-width:700px){
+  .solution-inner{grid-template-columns:1fr}
+  .solution-inner.flip{direction:ltr}
+  .footer-top{grid-template-columns:1fr 1fr}
+  nav.main{display:none}
+}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="logo"><i class="ti ti-topology-star-3"></i> BrandGraph <span>/ SEO Intelligence</span></div>
+<!-- HEADER -->
+<header>
+  <a class="logo" href="#" onclick="showPage('home')">
+    <div class="logo-dot"></div>Veraph
+  </a>
+  <nav class="main">
+    <a onclick="showPage('home')">Home</a>
+    <a onclick="showPage('solutions')">Solutions</a>
+    <a onclick="showPage('pricing')">Pricing</a>
+    <a onclick="showPage('about')">About</a>
+  </nav>
   <div class="spacer"></div>
-  <span class="badge">Live</span>
-</nav>
+  <a class="btn-outline" onclick="showPage('pricing')">Sign in</a>
+  <a class="btn-primary" onclick="showPage('pricing')">Get started</a>
+</header>
 
-<div class="layout">
-  <aside>
-    <div class="nav-section">Tools</div>
-    <div class="nav-item active" id="nav-kg" onclick="show('kg')"><i class="ti ti-topology-star-3"></i> Knowledge Graph</div>
-    <div class="nav-item" id="nav-schema" onclick="show('schema')"><i class="ti ti-code"></i> Schema Tester</div>
-    <div class="nav-item" id="nav-gsc" onclick="show('gsc')"><i class="ti ti-chart-line"></i> Search Console</div>
-    <div class="nav-item" id="nav-entity" onclick="show('entity')"><i class="ti ti-hierarchy-3"></i> Entity Explorer</div>
-    <div class="nav-section" style="margin-top:auto;">Account</div>
-    <div class="nav-item" id="nav-settings" onclick="show('settings')"><i class="ti ti-settings"></i> API Keys</div>
-  </aside>
+<!-- ════════════════ HOME ════════════════ -->
+<div id="page-home" class="page active">
 
-  <main>
-
-    <!-- KNOWLEDGE GRAPH -->
-    <div id="tool-kg">
-      <div class="tool-header">
-        <h1>Knowledge Graph Explorer</h1>
-        <p>Discover how Google represents any entity — person, brand, or organisation.</p>
-      </div>
-      <div class="card">
-        <div class="input-row">
-          <input type="text" id="kg-query" placeholder="Search entity e.g. Elon Musk, Nike, OpenAI…" onkeydown="if(event.key==='Enter')searchKG()" />
-          <button class="primary" onclick="searchKG()"><i class="ti ti-search"></i> Search</button>
-        </div>
-        <div class="btn-row">
-          <button class="secondary" onclick="loadKGDemo('Elon Musk')">Sample: Person</button>
-          <button class="secondary" onclick="loadKGDemo('Nike')">Sample: Brand</button>
-          <button class="secondary" onclick="loadKGDemo('OpenAI')">Sample: Organisation</button>
-        </div>
-      </div>
-      <div id="kg-result" style="margin-top:1rem;"></div>
+  <div class="hero">
+    <div class="hero-badge"><i class="ti ti-sparkles"></i> Now live — Knowledge Graph Explorer</div>
+    <h1>The search intelligence platform for <em>personal brands</em></h1>
+    <p>Understand how Google sees you. Optimise your entity. Own your presence in the knowledge graph.</p>
+    <div class="hero-cta">
+      <a class="btn-hero solid" onclick="showPage('pricing')"><i class="ti ti-rocket"></i> Start for free</a>
+      <a class="btn-hero ghost" onclick="showPage('solutions')">Explore tools <i class="ti ti-arrow-right"></i></a>
     </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="num">4</div><div class="lbl">Powerful tools</div></div>
+      <div class="stat"><div class="num">Google</div><div class="lbl">KG API powered</div></div>
+      <div class="stat"><div class="num">Real-time</div><div class="lbl">Entity data</div></div>
+    </div>
+  </div>
 
-    <!-- SCHEMA TESTER -->
-    <div id="tool-schema" style="display:none;">
-      <div class="tool-header">
-        <h1>Schema Markup Tester</h1>
-        <p>Validate your JSON-LD schema and get structured feedback for search engines.</p>
-      </div>
-      <div class="row">
-        <div class="card" style="flex:1.2;">
-          <div style="font-size:13px;font-weight:500;margin-bottom:8px;">Paste JSON-LD schema</div>
-          <textarea id="schema-input" placeholder='{"@context":"https://schema.org","@type":"Person","name":"…"}'></textarea>
-          <div class="btn-row" style="margin-top:8px;">
-            <button class="primary" onclick="testSchema()"><i class="ti ti-check"></i> Validate</button>
-            <button class="secondary" onclick="loadSampleSchema('person')">Sample: Person</button>
-            <button class="secondary" onclick="loadSampleSchema('article')">Sample: Article</button>
-          </div>
+  <div class="section">
+    <div class="section-inner">
+      <div class="section-label">The problem</div>
+      <div class="section-title">Most personal brands are invisible to Google</div>
+      <div class="section-sub">Search engines don't just index pages — they build a map of entities. Most marketers don't know where they stand on that map.</div>
+      <div class="problem-grid">
+        <div class="problem-item">
+          <div class="problem-icon red"><i class="ti ti-eye-off"></i></div>
+          <div><h3>No entity presence</h3><p>Google doesn't recognise your brand as a verified entity — so it can't confidently surface you in results.</p></div>
         </div>
-        <div id="schema-result" class="card" style="flex:1;">
-          <div class="empty"><i class="ti ti-code"></i>Paste a schema and click Validate</div>
+        <div class="problem-item">
+          <div class="problem-icon amber"><i class="ti ti-code-off"></i></div>
+          <div><h3>Broken schema markup</h3><p>Most websites have missing or invalid structured data, costing them rich results and knowledge panel eligibility.</p></div>
+        </div>
+        <div class="problem-item">
+          <div class="problem-icon purple"><i class="ti ti-chart-off"></i></div>
+          <div><h3>No visibility into search data</h3><p>Without understanding impressions, CTR and position, optimising your brand presence is guesswork.</p></div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- SEARCH CONSOLE -->
-    <div id="tool-gsc" style="display:none;">
-      <div class="tool-header">
-        <h1>Search Console Insights</h1>
-        <p>Visualise performance data from Google Search Console.</p>
-      </div>
-      <div class="api-note"><i class="ti ti-info-circle"></i> Connect via OAuth in Settings. Showing demo data below.</div>
-      <div class="metric-grid">
-        <div class="metric-card"><div class="label">Total Clicks</div><div class="value">24,182</div><div class="delta up">↑ 12% vs last period</div></div>
-        <div class="metric-card"><div class="label">Impressions</div><div class="value">318,540</div><div class="delta up">↑ 8%</div></div>
-        <div class="metric-card"><div class="label">Avg CTR</div><div class="value">7.6%</div><div class="delta up">↑ 0.4pp</div></div>
-        <div class="metric-card"><div class="label">Avg Position</div><div class="value">11.2</div><div class="delta down">↓ 1.1</div></div>
-      </div>
-      <div class="card">
-        <div style="font-size:13px;font-weight:500;margin-bottom:12px;">Clicks & Impressions — Last 90 Days</div>
-        <div class="chart-wrap"><canvas id="gscChart" aria-label="Line chart showing clicks and impressions over 90 days">Clicks and impressions trend over 90 days.</canvas></div>
-      </div>
-      <div class="card" style="margin-top:1rem;">
-        <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Top Queries</div>
-        <table style="width:100%;border-collapse:collapse;font-size:13px;">
-          <thead><tr style="color:var(--muted);text-align:left;border-bottom:0.5px solid var(--border);">
-            <th style="padding:6px 0;font-weight:500;">Query</th>
-            <th style="padding:6px 0;font-weight:500;">Clicks</th>
-            <th style="padding:6px 0;font-weight:500;">Impressions</th>
-            <th style="padding:6px 0;font-weight:500;">CTR</th>
-            <th style="padding:6px 0;font-weight:500;">Position</th>
-          </tr></thead>
-          <tbody id="gsc-table"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ENTITY EXPLORER -->
-    <div id="tool-entity" style="display:none;">
-      <div class="tool-header">
-        <h1>Entity Explorer</h1>
-        <p>Map entity relationships across Wikidata and DBpedia.</p>
-      </div>
-      <div class="card">
-        <div class="input-row">
-          <input type="text" id="entity-query" placeholder="Search entity e.g. Elon Musk, Tesla, OpenAI…" onkeydown="if(event.key==='Enter')exploreEntity()" />
-          <button class="primary" onclick="exploreEntity()"><i class="ti ti-hierarchy-3"></i> Explore</button>
+  <div class="section features-bg">
+    <div class="section-inner">
+      <div class="section-label">What Veraph does</div>
+      <div class="section-title">Four tools. One intelligence platform.</div>
+      <div class="section-sub">Everything a personal brand marketer needs to understand and optimise their search presence — in one place.</div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-topology-star-3"></i></div>
+          <h3>Knowledge Graph Explorer</h3>
+          <p>Search any entity and see exactly how Google represents them — types, descriptions, sameAs links and relevance score.</p>
+          <span class="feature-tag" style="background:var(--accent-bg);color:var(--accent)">Google KG API</span>
         </div>
-        <div class="btn-row">
-          <button class="secondary" onclick="loadEntityDemo('person')">Sample: Person</button>
-          <button class="secondary" onclick="loadEntityDemo('company')">Sample: Company</button>
+        <div class="feature-card">
+          <div class="feature-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-code"></i></div>
+          <h3>Schema Markup Tester</h3>
+          <p>Paste your JSON-LD schema and get instant validation — errors, warnings and actionable suggestions for Google.</p>
+          <span class="feature-tag" style="background:var(--green-bg);color:var(--green)">Structured Data</span>
         </div>
-      </div>
-      <div id="entity-result" style="margin-top:1rem;"></div>
-    </div>
-
-    <!-- SETTINGS -->
-    <div id="tool-settings" style="display:none;">
-      <div class="tool-header">
-        <h1>API Keys</h1>
-        <p>Connect your API credentials to enable live data.</p>
-      </div>
-      <div class="card">
-        <div style="display:flex;flex-direction:column;gap:1.25rem;">
-          <div>
-            <div style="font-size:13px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-topology-star-3" style="color:var(--accent);"></i> Google Knowledge Graph API Key</div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Already added to Netlify environment variables as GOOGLE_KG_API_KEY</div>
-            <span style="font-size:12px;background:var(--green-bg);color:var(--green);padding:3px 10px;border-radius:20px;">Connected via Netlify</span>
-          </div>
-          <div class="divider"></div>
-          <div>
-            <div style="font-size:13px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-chart-line" style="color:var(--accent);"></i> Google Search Console OAuth</div>
-            <button class="secondary"><i class="ti ti-brand-google"></i> Connect with Google</button>
-          </div>
-          <div class="divider"></div>
-          <div>
-            <div style="font-size:13px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-hierarchy-3" style="color:var(--accent);"></i> Wikidata / DBpedia</div>
-            <span style="font-size:12px;background:var(--green-bg);color:var(--green);padding:3px 10px;border-radius:20px;">Public API — no key needed</span>
-          </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background:var(--purple-bg);color:var(--purple)"><i class="ti ti-chart-line"></i></div>
+          <h3>Search Console Insights</h3>
+          <p>Visualise your GSC data — impressions, clicks, CTR and position — with clear charts and top query breakdowns.</p>
+          <span class="feature-tag" style="background:var(--purple-bg);color:var(--purple)">GSC API</span>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="ti ti-hierarchy-3"></i></div>
+          <h3>Entity Explorer</h3>
+          <p>Map how entities connect across Wikidata and DBpedia — understand the semantic web around your brand.</p>
+          <span class="feature-tag" style="background:var(--amber-bg);color:var(--amber)">Wikidata · DBpedia</span>
         </div>
       </div>
     </div>
+  </div>
 
-  </main>
+  <div class="section">
+    <div class="section-inner">
+      <div class="section-label">How it works</div>
+      <div class="section-title">From zero to entity-optimised in minutes</div>
+      <div class="steps">
+        <div class="step"><div class="step-num">Step 01</div><h3>Search your entity</h3><p>Enter your name or brand into the Knowledge Graph Explorer and see exactly how Google currently represents you.</p></div>
+        <div class="step"><div class="step-num">Step 02</div><h3>Validate your schema</h3><p>Paste your website's JSON-LD into the Schema Tester and get instant feedback on what to fix and improve.</p></div>
+        <div class="step"><div class="step-num">Step 03</div><h3>Explore your connections</h3><p>Use the Entity Explorer to map your brand's relationship to other entities across the semantic web.</p></div>
+        <div class="step"><div class="step-num">Step 04</div><h3>Track your performance</h3><p>Connect Search Console to monitor clicks, impressions and position changes over time as your entity grows.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-band">
+    <h2>Ready to own your search presence?</h2>
+    <p>Join personal brand marketers using Veraph to understand and optimise their entity.</p>
+    <a class="btn-hero solid" onclick="showPage('pricing')"><i class="ti ti-rocket"></i> Get started free</a>
+  </div>
+
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script>
+<!-- ════════════════ SOLUTIONS ════════════════ -->
+<div id="page-solutions" class="page">
 
-// ── NAV ──────────────────────────────────────────────
-function show(tool) {
-  ['kg','schema','gsc','entity','settings'].forEach(t => {
-    document.getElementById('tool-'+t).style.display = t === tool ? '' : 'none';
-    document.getElementById('nav-'+t).classList.toggle('active', t === tool);
-  });
-  if (tool === 'gsc') setTimeout(renderGSC, 100);
-}
+  <div class="solutions-hero">
+    <div class="hero-badge" style="margin-bottom:1.5rem;"><i class="ti ti-tools"></i> Four tools, one platform</div>
+    <h1>Built for search-savvy personal brand marketers</h1>
+    <p>Each tool is designed around a specific gap in how personal brands interact with Google's search infrastructure.</p>
+  </div>
 
-// ── KNOWLEDGE GRAPH ───────────────────────────────────
-function loadKGDemo(name) {
-  document.getElementById('kg-query').value = name;
-  searchKG();
-}
+  <div class="solution-block">
+    <div class="solution-inner">
+      <div>
+        <div class="solution-num">Tool 01</div>
+        <h2>Knowledge Graph Explorer</h2>
+        <p>Google's Knowledge Graph is the backbone of modern search. It determines who gets a knowledge panel, who appears in entity-based queries, and how confidently Google surfaces your brand.</p>
+        <p>Veraph connects directly to the Google Knowledge Graph Search API so you can look up any entity and see its full representation — types, descriptions, sameAs links, and relevance score.</p>
+        <div class="solution-points">
+          <div class="solution-point"><i class="ti ti-check"></i> Search any person, brand or organisation</div>
+          <div class="solution-point"><i class="ti ti-check"></i> View entity types, descriptions and sameAs links</div>
+          <div class="solution-point"><i class="ti ti-check"></i> See Google's relevance score for any entity</div>
+          <div class="solution-point"><i class="ti ti-check"></i> Toggle raw JSON API response for developers</div>
+        </div>
+      </div>
+      <div class="solution-visual">
+        <div class="vis-label">Entity result — Elon Musk</div>
+        <div class="vis-entity">
+          <div class="dot" style="background:rgba(24,95,165,0.2);color:#4a8fd4">EM</div>
+          <div class="info"><div class="name">Elon Musk</div><div class="type">Person · Entrepreneur · Business person</div></div>
+          <div class="vis-score">0.87</div>
+        </div>
+        <div class="vis-entity">
+          <div class="dot" style="background:rgba(59,109,17,0.2);color:#6aab20">Nk</div>
+          <div class="info"><div class="name">Nike</div><div class="type">Brand · Organisation · Corporation</div></div>
+          <div class="vis-score">0.95</div>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="vis-label">Relevance score</div>
+          <div class="vis-bar filled" style="width:87%"></div>
+          <div class="vis-label" style="margin-top:8px;">sameAs links found</div>
+          <div class="vis-bar half"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-async function searchKG() {
-  const q = document.getElementById('kg-query').value.trim();
-  if (!q) return;
-  const r = document.getElementById('kg-result');
-  r.innerHTML = `<div class="card"><div class="loading"><div class="spinner"></div>Searching Knowledge Graph…</div></div>`;
-  try {
-    const res = await fetch('/.netlify/functions/knowledge-graph?query=' + encodeURIComponent(q));
-    const data = await res.json();
-    const items = data.itemListElement;
-    if (!items || items.length === 0) {
-      r.innerHTML = `<div class="card"><div class="empty"><i class="ti ti-search"></i>No results found for "${q}"</div></div>`;
-      return;
-    }
-    const entity = items[0].result;
-    const name = entity.name || q;
-    const desc = entity.detailedDescription?.articleBody || entity.description || 'No description available.';
-    const types = entity['@type'] || [];
-    const score = items[0].resultScore ? items[0].resultScore.toFixed(2) : 'N/A';
-    const pct = Math.min(Math.round((items[0].resultScore || 0.5) * 100), 100);
-    const sameAs = [];
-    if (entity.url) sameAs.push(entity.url);
-    if (entity.detailedDescription?.url) sameAs.push(entity.detailedDescription.url);
-    const raw = JSON.stringify(entity, null, 2);
-    r.innerHTML = `
-      <div class="card">
-        <div class="kg-entity">
-          <div class="kg-img"><i class="ti ti-user"></i></div>
-          <div class="kg-info">
-            <h2>${name}</h2>
-            <div>${types.map(t => `<span class="tag">${t}</span>`).join('')}</div>
-            <div class="desc">${desc}</div>
-            <div class="score-bar">
-              <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
-              <span class="score-label">Relevance score: ${score}</span>
-            </div>
+  <div class="solution-block">
+    <div class="solution-inner flip">
+      <div>
+        <div class="solution-num">Tool 02</div>
+        <h2>Schema Markup Tester</h2>
+        <p>Structured data is how you communicate directly with search engines. Without valid JSON-LD schema, Google can't confirm your entity type, surface rich results, or connect your content to the knowledge graph.</p>
+        <p>Veraph's Schema Tester validates your markup instantly — flagging errors, warnings and missing properties with clear guidance on what to fix.</p>
+        <div class="solution-points">
+          <div class="solution-point"><i class="ti ti-check"></i> Paste any JSON-LD schema for instant validation</div>
+          <div class="solution-point"><i class="ti ti-check"></i> Detects missing @context, @type, image and sameAs</div>
+          <div class="solution-point"><i class="ti ti-check"></i> Clear pass, warn and fail indicators</div>
+          <div class="solution-point"><i class="ti ti-check"></i> Sample schemas for Person and Article types</div>
+        </div>
+      </div>
+      <div class="solution-visual">
+        <div class="vis-label">Schema validation result</div>
+        <div class="schema-vis">
+          <div><span class="key">"@context"</span>: <span class="val">"schema.org"</span><span class="ok">✓ Pass</span></div>
+          <div><span class="key">"@type"</span>: <span class="val">"Person"</span><span class="ok">✓ Pass</span></div>
+          <div><span class="key">"name"</span>: <span class="val">"Jane Doe"</span><span class="ok">✓ Pass</span></div>
+          <div><span class="key">"image"</span>: <span class="val">undefined</span><span class="warn">⚠ Warn</span></div>
+          <div><span class="key">"sameAs"</span>: <span class="val">undefined</span><span class="warn">⚠ Warn</span></div>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="vis-label">Validation summary</div>
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <span style="background:rgba(59,109,17,0.15);color:#6aab20;font-size:11px;padding:3px 10px;border-radius:20px;">3 passed</span>
+            <span style="background:rgba(133,79,11,0.15);color:#f59e0b;font-size:11px;padding:3px 10px;border-radius:20px;">2 warnings</span>
+            <span style="background:rgba(163,45,45,0.15);color:#f87171;font-size:11px;padding:3px 10px;border-radius:20px;">0 errors</span>
           </div>
         </div>
-        <div class="divider"></div>
-        <div style="font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:500;">sameAs links</div>
-        <div style="display:flex;flex-direction:column;gap:4px;">
-          ${sameAs.length ? sameAs.map(u => `<a href="${u}" target="_blank" style="font-size:12.5px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:4px;"><i class="ti ti-external-link" style="font-size:13px;"></i>${u}</a>`).join('') : '<span style="font-size:12.5px;color:var(--muted);">No sameAs links found</span>'}
-        </div>
-        <div class="json-toggle">
-          <button class="secondary" onclick="toggleJSON()"><i class="ti ti-code"></i> Raw JSON</button>
-          <span style="font-size:12px;color:var(--muted);">Toggle API response</span>
-        </div>
-        <pre class="json-block" id="json-block">${raw}</pre>
-      </div>`;
-  } catch (err) {
-    r.innerHTML = `<div class="card"><div class="empty"><i class="ti ti-alert-circle"></i>Could not connect. Check your API key in Netlify environment variables.</div></div>`;
-  }
-}
-
-function toggleJSON() {
-  document.getElementById('json-block').classList.toggle('open');
-}
-
-// ── SCHEMA TESTER ─────────────────────────────────────
-const schemaSamples = {
-  person: `{\n  "@context": "https://schema.org",\n  "@type": "Person",\n  "name": "Jane Doe",\n  "url": "https://janedoe.com",\n  "image": "https://janedoe.com/photo.jpg",\n  "jobTitle": "Marketing Consultant",\n  "sameAs": [\n    "https://twitter.com/janedoe",\n    "https://linkedin.com/in/janedoe"\n  ]\n}`,
-  article: `{\n  "@context": "https://schema.org",\n  "@type": "Article",\n  "headline": "How to Build Your Personal Brand",\n  "author": { "@type": "Person", "name": "Jane Doe" },\n  "datePublished": "2025-01-15",\n  "image": "https://janedoe.com/article.jpg"\n}`
-};
-
-function loadSampleSchema(t) {
-  document.getElementById('schema-input').value = schemaSamples[t];
-}
-
-function testSchema() {
-  const v = document.getElementById('schema-input').value.trim();
-  const el = document.getElementById('schema-result');
-  if (!v) { el.innerHTML = `<div class="empty"><i class="ti ti-alert-circle"></i>No schema to validate</div>`; return; }
-  el.innerHTML = `<div class="loading"><div class="spinner"></div>Validating…</div>`;
-  setTimeout(() => {
-    let parsed, types = [], checks = [];
-    try {
-      parsed = JSON.parse(v);
-      const t = parsed['@type'] || 'Unknown';
-      types = Array.isArray(t) ? t : [t];
-      const hasCtx = !!parsed['@context'];
-      const hasName = !!parsed.name || !!parsed.headline;
-      const hasSameAs = !!parsed.sameAs;
-      const hasImage = !!parsed.image;
-      checks = [
-        { status: hasCtx ? 'ok' : 'error', title: '@context defined', msg: hasCtx ? 'schema.org context found — good.' : 'Missing @context. Add "https://schema.org".' },
-        { status: 'ok', title: '@type present', msg: `Type is "${types.join(', ')}" — recognised by Google.` },
-        { status: hasName ? 'ok' : 'warn', title: 'Name / headline', msg: hasName ? 'Name field found.' : 'No name or headline field found. Recommended for all entities.' },
-        { status: hasImage ? 'ok' : 'warn', title: 'Image property', msg: hasImage ? 'Image URL present.' : 'No image found. Adding one improves rich result eligibility.' },
-        { status: hasSameAs ? 'ok' : 'warn', title: 'sameAs links', msg: hasSameAs ? 'sameAs links found — helps Google confirm your entity.' : 'No sameAs links. Add Wikipedia or Wikidata URLs to strengthen entity confidence.' }
-      ];
-    } catch(e) {
-      el.innerHTML = `<div style="color:#A32D2D;display:flex;align-items:center;gap:6px;font-size:13px;"><i class="ti ti-alert-circle"></i>Invalid JSON: ${e.message}</div>`;
-      return;
-    }
-    const err = checks.filter(c => c.status === 'error').length;
-    const warn = checks.filter(c => c.status === 'warn').length;
-    el.innerHTML = `
-      <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Detected Types</div>
-      <div class="schema-types">${types.map(t => `<div class="schema-type"><i class="ti ti-check"></i>${t}</div>`).join('')}</div>
-      <div class="divider"></div>
-      <div style="font-size:13px;font-weight:500;margin-bottom:6px;">Validation Results <span style="font-weight:400;color:var(--muted);font-size:12px;margin-left:8px;">${err} errors · ${warn} warnings</span></div>
-      ${checks.map(c => `<div class="validation-item">
-        <span class="vbadge ${c.status}">${c.status==='ok'?'Pass':c.status==='warn'?'Warn':'Fail'}</span>
-        <div class="val-text"><strong>${c.title}</strong><br>${c.msg}</div>
-      </div>`).join('')}`;
-  }, 700);
-}
-
-// ── SEARCH CONSOLE ────────────────────────────────────
-const gscQueries = [
-  { q:'personal brand seo guide', clicks:1240, impr:18400, ctr:'6.7%', pos:'4.2' },
-  { q:'knowledge graph optimization', clicks:980, impr:12200, ctr:'8.0%', pos:'3.1' },
-  { q:'schema markup for persons', clicks:760, impr:9800, ctr:'7.8%', pos:'5.6' },
-  { q:'google entity seo', clicks:540, impr:7400, ctr:'7.3%', pos:'8.4' },
-  { q:'personal branding digital marketing', clicks:480, impr:11200, ctr:'4.3%', pos:'12.1' },
-];
-let chartInst = null;
-function renderGSC() {
-  if (chartInst) { chartInst.destroy(); chartInst = null; }
-  const tbody = document.getElementById('gsc-table');
-  if (tbody) tbody.innerHTML = gscQueries.map(r => `<tr style="border-bottom:0.5px solid var(--border);">
-    <td style="padding:8px 0;color:var(--accent);">${r.q}</td>
-    <td style="padding:8px 0;">${r.clicks.toLocaleString()}</td>
-    <td style="padding:8px 0;">${r.impr.toLocaleString()}</td>
-    <td style="padding:8px 0;">${r.ctr}</td>
-    <td style="padding:8px 0;">${r.pos}</td>
-  </tr>`).join('');
-  const c = document.getElementById('gscChart');
-  if (!c) return;
-  const labels = Array.from({length:12},(_,i) => { const d = new Date(2025,i,1); return d.toLocaleString('default',{month:'short'}); });
-  const clicks = [1800,2100,1950,2400,2700,2300,2600,2900,2750,3100,3400,3250];
-  const impr = [24000,27000,25000,31000,34000,30000,33000,37000,35000,39000,43000,41000];
-  chartInst = new Chart(c, {
-    type: 'line',
-    data: { labels, datasets: [
-      { label:'Clicks', data:clicks, borderColor:'#185FA5', backgroundColor:'rgba(24,95,165,0.08)', fill:true, tension:0.4, pointRadius:3, borderWidth:2 },
-      { label:'Impressions / 10', data:impr.map(v => Math.round(v/10)), borderColor:'#3B6D11', backgroundColor:'rgba(59,109,17,0.06)', fill:true, tension:0.4, pointRadius:3, borderWidth:2, borderDash:[4,3] }
-    ]},
-    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{grid:{color:'rgba(0,0,0,0.05)'}}, y:{grid:{color:'rgba(0,0,0,0.05)'}} } }
-  });
-}
-
-// ── ENTITY EXPLORER ───────────────────────────────────
-const entityData = {
-  person: {
-    center: { label:'Elon Musk', color:'#185FA5', bg:'#E6F1FB' },
-    nodes: [
-      { label:'Tesla', color:'#3B6D11', bg:'#EAF3DE', x:20, y:20 },
-      { label:'SpaceX', color:'#534AB7', bg:'#EEEDFE', x:78, y:18 },
-      { label:'xAI', color:'#854F0B', bg:'#FAEEDA', x:82, y:72 },
-      { label:'Entrepreneur', color:'#6b6b67', bg:'#f1efe8', x:18, y:75 },
-      { label:'South Africa', color:'#A32D2D', bg:'#FCEBEB', x:50, y:88 },
-    ]
-  },
-  company: {
-    center: { label:'OpenAI', color:'#185FA5', bg:'#E6F1FB' },
-    nodes: [
-      { label:'Sam Altman', color:'#534AB7', bg:'#EEEDFE', x:20, y:20 },
-      { label:'GPT-4', color:'#3B6D11', bg:'#EAF3DE', x:78, y:18 },
-      { label:'Microsoft', color:'#854F0B', bg:'#FAEEDA', x:82, y:72 },
-      { label:'AI Research', color:'#6b6b67', bg:'#f1efe8', x:18, y:75 },
-      { label:'San Francisco', color:'#A32D2D', bg:'#FCEBEB', x:50, y:88 },
-    ]
-  }
-};
-
-function exploreEntity() {
-  const q = document.getElementById('entity-query').value.trim();
-  if (!q) return;
-  const r = document.getElementById('entity-result');
-  r.innerHTML = `<div class="card"><div class="loading"><div class="spinner"></div>Fetching entity graph…</div></div>`;
-  setTimeout(() => renderEntity(entityData.person), 900);
-}
-
-function loadEntityDemo(type) {
-  document.getElementById('entity-query').value = entityData[type].center.label;
-  const r = document.getElementById('entity-result');
-  r.innerHTML = `<div class="card"><div class="loading"><div class="spinner"></div>Fetching entity graph…</div></div>`;
-  setTimeout(() => renderEntity(entityData[type]), 800);
-}
-
-function renderEntity(d) {
-  const cx = 50, cy = 50;
-  const nodeHTML = d.nodes.map(n => `
-    <div class="entity-node" style="left:${n.x}%;top:${n.y}%;">
-      <div class="circle" style="background:${n.bg};color:${n.color};border-color:${n.color}20;">${n.label.slice(0,2)}</div>
-      <div class="nlabel">${n.label}</div>
-    </div>`).join('');
-  const svgLines = d.nodes.map(n => `
-    <line x1="${cx}%" y1="${cy}%" x2="${n.x}%" y2="${n.y}%" stroke="rgba(0,0,0,0.12)" stroke-width="1.5" stroke-dasharray="4 3"/>`).join('');
-  document.getElementById('entity-result').innerHTML = `
-    <div class="card">
-      <div class="entity-graph">
-        <svg class="edges">${svgLines}</svg>
-        <div class="entity-node center" style="left:${cx}%;top:${cy}%;">
-          <div class="circle" style="background:${d.center.bg};color:${d.center.color};border-color:${d.center.color};">${d.center.label.slice(0,2)}</div>
-          <div class="nlabel">${d.center.label}</div>
-        </div>
-        ${nodeHTML}
       </div>
-      <div class="divider"></div>
-      <div style="font-size:13px;font-weight:500;margin-bottom:8px;">Connected entities</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;">
-        ${d.nodes.map(n => `<span style="background:${n.bg};color:${n.color};font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;">${n.label}</span>`).join('')}
+    </div>
+  </div>
+
+  <div class="solution-block">
+    <div class="solution-inner">
+      <div>
+        <div class="solution-num">Tool 03</div>
+        <h2>Search Console Insights</h2>
+        <p>Raw Search Console data is hard to read. Veraph pulls in your GSC data and presents it in a clean, visual dashboard — so you can track your personal brand's search performance at a glance.</p>
+        <div class="solution-points">
+          <div class="solution-point"><i class="ti ti-check"></i> Clicks, impressions, CTR and average position</div>
+          <div class="solution-point"><i class="ti ti-check"></i> Visual trend charts over 90 days</div>
+          <div class="solution-point"><i class="ti ti-check"></i> Top queries and pages breakdown</div>
+          <div class="solution-point"><i class="ti ti-check"></i> Connect via Google OAuth — no CSV exports needed</div>
+        </div>
       </div>
-      <div class="divider"></div>
-      <div style="font-size:12.5px;color:var(--muted);display:flex;gap:1rem;flex-wrap:wrap;">
-        <span><i class="ti ti-external-link" style="font-size:13px;vertical-align:-2px;"></i> <a href="#" style="color:var(--accent);text-decoration:none;">View on Wikidata</a></span>
-        <span><i class="ti ti-external-link" style="font-size:13px;vertical-align:-2px;"></i> <a href="#" style="color:var(--accent);text-decoration:none;">View on DBpedia</a></span>
+      <div class="solution-visual">
+        <div class="vis-label">Performance overview</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+          <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:10px;"><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:4px;">Clicks</div><div style="font-size:20px;font-weight:600;color:#fff;">24,182</div><div style="font-size:10px;color:#6aab20;">↑ 12%</div></div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:10px;"><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:4px;">Impressions</div><div style="font-size:20px;font-weight:600;color:#fff;">318K</div><div style="font-size:10px;color:#6aab20;">↑ 8%</div></div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:10px;"><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:4px;">Avg CTR</div><div style="font-size:20px;font-weight:600;color:#fff;">7.6%</div><div style="font-size:10px;color:#6aab20;">↑ 0.4pp</div></div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:10px;"><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:4px;">Position</div><div style="font-size:20px;font-weight:600;color:#fff;">11.2</div><div style="font-size:10px;color:#f87171;">↓ 1.1</div></div>
+        </div>
+        <div class="vis-label">Top query</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:6px;">knowledge graph optimization</div>
+        <div class="vis-bar filled" style="width:80%"></div>
       </div>
-    </div>`;
+    </div>
+  </div>
+
+  <div class="solution-block">
+    <div class="solution-inner flip">
+      <div>
+        <div class="solution-num">Tool 04</div>
+        <h2>Entity Explorer</h2>
+        <p>The semantic web is a network of connected entities. Understanding how your brand connects to other entities — people, organisations, topics — is key to building entity authority in Google's eyes.</p>
+        <p>Veraph's Entity Explorer pulls data from Wikidata and DBpedia to visualise these connections in an interactive node graph.</p>
+        <div class="solution-points">
+          <div class="solution-point"><i class="ti ti-check"></i> Interactive entity relationship graph</div>
+          <div class="solution-point"><i class="ti ti-check"></i> Powered by Wikidata and DBpedia</div>
+          <div class="solution-point"><i class="ti ti-check"></i> No API key required — fully public data</div>
+          <div class="solution-point"><i class="ti ti-check"></i> Direct links to Wikidata and DBpedia profiles</div>
+        </div>
+      </div>
+      <div class="solution-visual">
+        <div class="vis-label">Entity relationship map</div>
+        <div class="node-vis">
+          <svg viewBox="0 0 300 180">
+            <line x1="150" y1="90" x2="60" y2="40" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4 3"/>
+            <line x1="150" y1="90" x2="240" y2="40" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4 3"/>
+            <line x1="150" y1="90" x2="240" y2="145" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4 3"/>
+            <line x1="150" y1="90" x2="60" y2="145" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4 3"/>
+            <line x1="150" y1="90" x2="150" y2="165" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4 3"/>
+            <circle cx="150" cy="90" r="28" fill="rgba(24,95,165,0.25)" stroke="rgba(24,95,165,0.6)" stroke-width="1.5"/>
+            <text x="150" y="87" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)" font-weight="600">Elon</text>
+            <text x="150" y="98" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)" font-weight="600">Musk</text>
+            <circle cx="60" cy="40" r="18" fill="rgba(59,109,17,0.25)" stroke="rgba(59,109,17,0.5)" stroke-width="1"/>
+            <text x="60" y="44" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.7)">Tesla</text>
+            <circle cx="240" cy="40" r="18" fill="rgba(83,74,183,0.25)" stroke="rgba(83,74,183,0.5)" stroke-width="1"/>
+            <text x="240" y="44" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.7)">SpaceX</text>
+            <circle cx="240" cy="145" r="18" fill="rgba(133,79,11,0.25)" stroke="rgba(133,79,11,0.5)" stroke-width="1"/>
+            <text x="240" y="149" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.7)">xAI</text>
+            <circle cx="60" cy="145" r="18" fill="rgba(107,107,103,0.25)" stroke="rgba(107,107,103,0.5)" stroke-width="1"/>
+            <text x="60" y="149" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.7)">Entrepr.</text>
+            <circle cx="150" cy="165" r="16" fill="rgba(163,45,45,0.25)" stroke="rgba(163,45,45,0.5)" stroke-width="1"/>
+            <text x="150" y="169" text-anchor="middle" font-size="7.5" fill="rgba(255,255,255,0.7)">S. Africa</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-band">
+    <h2>Ready to explore your entity?</h2>
+    <p>Start with the Knowledge Graph Explorer — free, no signup needed.</p>
+    <a class="btn-hero solid" onclick="showPage('pricing')"><i class="ti ti-rocket"></i> Get started free</a>
+  </div>
+
+</div>
+
+<!-- ════════════════ PRICING ════════════════ -->
+<div id="page-pricing" class="page">
+
+  <div class="pricing-hero">
+    <div class="hero-badge" style="margin-bottom:1.5rem;"><i class="ti ti-tag"></i> Simple, transparent pricing</div>
+    <h1>Start free. Scale when you're ready.</h1>
+    <p>No hidden fees. No credit card required to get started.</p>
+  </div>
+
+  <div class="pricing-section">
+    <div class="section-inner text-center">
+      <div class="section-label">Pricing plans</div>
+      <div class="section-title">Choose your plan</div>
+    </div>
+    <div class="pricing-grid">
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0<span>/mo</span></div>
+        <div class="plan-desc">Perfect for exploring Veraph and testing your entity presence.</div>
+        <div class="plan-features">
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Knowledge Graph Explorer</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Schema Markup Tester</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> 10 searches per day</div>
+          <div class="plan-feature"><i class="ti ti-x no"></i> Search Console Insights</div>
+          <div class="plan-feature"><i class="ti ti-x no"></i> Entity Explorer</div>
+          <div class="plan-feature"><i class="ti ti-x no"></i> Saved search history</div>
+        </div>
+        <button class="plan-btn outline">Get started free</button>
+      </div>
+
+      <div class="plan featured">
+        <div class="plan-badge">Most popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$29<span>/mo</span></div>
+        <div class="plan-desc">For personal brand marketers who are serious about search intelligence.</div>
+        <div class="plan-features">
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Knowledge Graph Explorer</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Schema Markup Tester</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Unlimited searches</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Search Console Insights</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Entity Explorer</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Saved search history</div>
+        </div>
+        <button class="plan-btn solid">Start Pro — $29/mo</button>
+      </div>
+
+      <div class="plan">
+        <div class="plan-name">Agency</div>
+        <div class="plan-price">$99<span>/mo</span></div>
+        <div class="plan-desc">For agencies managing multiple personal brand clients at scale.</div>
+        <div class="plan-features">
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Everything in Pro</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Up to 10 client workspaces</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Team member access</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Client reporting exports</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Priority support</div>
+          <div class="plan-feature"><i class="ti ti-check yes"></i> Early access to new tools</div>
+        </div>
+        <button class="plan-btn outline">Start Agency — $99/mo</button>
+      </div>
+    </div>
+
+    <div class="faq">
+      <h2>Frequently asked questions</h2>
+      <div class="faq-item">
+        <h3>Do I need a Google API key to use Veraph?</h3>
+        <p>For the Knowledge Graph Explorer, yes — you'll need a free Google Cloud API key. We walk you through getting one in under 5 minutes. The Entity Explorer uses public Wikidata and DBpedia data with no key required.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Is my API key stored securely?</h3>
+        <p>Yes. API keys are stored as encrypted environment variables and never exposed publicly. We use industry-standard security practices to keep your credentials safe.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Can I cancel anytime?</h3>
+        <p>Absolutely. There are no long-term contracts. You can cancel your subscription at any time and you'll retain access until the end of your billing period.</p>
+      </div>
+      <div class="faq-item">
+        <h3>What is a knowledge graph and why does it matter for personal brands?</h3>
+        <p>Google's Knowledge Graph is a database of entities — people, brands, places and concepts — that Google uses to understand the world. If your personal brand is recognised as an entity, you're far more likely to appear in knowledge panels, entity-based queries and AI-generated search summaries.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════ ABOUT ════════════════ -->
+<div id="page-about" class="page">
+
+  <div class="about-hero">
+    <div class="hero-badge" style="margin-bottom:1.5rem;"><i class="ti ti-info-circle"></i> Our story</div>
+    <h1>Built for marketers who think in entities</h1>
+    <p>Veraph was built out of frustration with how hard it is to understand and optimise a personal brand's presence in Google's search infrastructure.</p>
+  </div>
+
+  <div class="about-section">
+    <div class="about-inner">
+      <h2>Why we built Veraph</h2>
+      <p>Personal brand marketers are sophisticated. They understand content, they understand audiences — but when it comes to the backend of search, the tools available are either too technical, too expensive, or built for enterprises with thousands of pages.</p>
+      <p>Veraph is different. It's built specifically for the marketer who wants to understand how Google sees their personal brand as an entity — not just as a collection of web pages.</p>
+      <p>We connect directly to the APIs that matter: Google's Knowledge Graph, Search Console, Wikidata, and DBpedia — and present the data in a way that's clear, visual, and actionable.</p>
+
+      <div class="values-grid">
+        <div class="value-card"><i class="ti ti-eye"></i><h3>Transparency</h3><p>We show you the raw data alongside the visual — no black boxes.</p></div>
+        <div class="value-card"><i class="ti ti-bolt"></i><h3>Speed</h3><p>Real-time data, instant results. No waiting for reports to generate.</p></div>
+        <div class="value-card"><i class="ti ti-lock"></i><h3>Security</h3><p>Your API keys are encrypted and never exposed. Always.</p></div>
+        <div class="value-card"><i class="ti ti-users"></i><h3>Built for marketers</h3><p>No developer knowledge required to get real value from Veraph.</p></div>
+      </div>
+
+      <div style="margin-top:3rem;">
+        <h2>Who Veraph is for</h2>
+        <p>We built Veraph for a specific type of marketer — someone who works in the digital space and wants to go deeper than surface-level SEO.</p>
+        <div class="who-grid">
+          <div class="who-card"><i class="ti ti-user"></i><div><h3>Personal brand consultants</h3><p>Managing client entity presence across search</p></div></div>
+          <div class="who-card"><i class="ti ti-speakerphone"></i><div><h3>Digital marketers</h3><p>Building authority through structured data and entity SEO</p></div></div>
+          <div class="who-card"><i class="ti ti-building"></i><div><h3>Agencies</h3><p>Running entity optimisation for multiple clients</p></div></div>
+          <div class="who-card"><i class="ti ti-writing"></i><div><h3>Content creators</h3><p>Growing their presence in Google's knowledge graph</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-band">
+    <h2>Ready to understand your entity?</h2>
+    <p>Start with the free plan — no credit card required.</p>
+    <a class="btn-hero solid" onclick="showPage('pricing')"><i class="ti ti-rocket"></i> Get started free</a>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="logo" onclick="showPage('home')"><div class="logo-dot"></div>Veraph</a>
+        <p>The search intelligence platform for personal brands.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a onclick="showPage('solutions')">Knowledge Graph</a>
+        <a onclick="showPage('solutions')">Schema Tester</a>
+        <a onclick="showPage('solutions')">Search Console</a>
+        <a onclick="showPage('solutions')">Entity Explorer</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a onclick="showPage('about')">About</a>
+        <a onclick="showPage('pricing')">Pricing</a>
+        <a>Blog</a>
+        <a>Contact</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a>Privacy Policy</a>
+        <a>Terms of Service</a>
+        <a>Cookie Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Veraph. All rights reserved.</p>
+      <p>The search intelligence platform for personal brands.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
 }
 </script>
 </body>
