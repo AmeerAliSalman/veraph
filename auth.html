@@ -58,8 +58,8 @@ header{height:56px;background:var(--dark);display:flex;align-items:center;paddin
     <div class="auth-title">Welcome to Veraph</div>
     <div class="auth-sub">The search intelligence platform for personal brands.</div>
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('login')">Sign in</div>
-      <div class="tab" onclick="switchTab('signup')">Create account</div>
+      <div class="tab active" id="tab-login" onclick="switchTab('login')" style="cursor:pointer;">Sign in</div>
+      <div class="tab" id="tab-signup" onclick="switchTab('signup')" style="cursor:pointer;">Create account</div>
     </div>
 
     <!-- LOGIN -->
@@ -111,9 +111,10 @@ supabase.auth.getSession().then(({data:{session}})=>{
 });
 
 function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(tab==='login'?i===0:i===1)));
-  document.getElementById('form-login').style.display = tab==='login'?'':'none';
-  document.getElementById('form-signup').style.display = tab==='signup'?'':'none';
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-signup').classList.toggle('active', tab==='signup');
+  document.getElementById('form-login').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('form-signup').style.display = tab==='signup' ? 'block' : 'none';
 }
 
 function setLoading(btnId, loading) {
