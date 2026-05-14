@@ -58,8 +58,8 @@ header{height:56px;background:var(--dark);display:flex;align-items:center;paddin
     <div class="auth-title">Welcome to Veraph</div>
     <div class="auth-sub">The search intelligence platform for personal brands.</div>
     <div class="tabs">
-      <div class="tab active" id="tab-login" onclick="switchTab('login')" style="cursor:pointer;">Sign in</div>
-      <div class="tab" id="tab-signup" onclick="switchTab('signup')" style="cursor:pointer;">Create account</div>
+      <div class="tab active" id="tab-login" style="cursor:pointer;">Sign in</div>
+      <div class="tab" id="tab-signup" style="cursor:pointer;">Create account</div>
     </div>
 
     <!-- LOGIN -->
@@ -109,6 +109,10 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 supabase.auth.getSession().then(({data:{session}})=>{
   if(session) window.location.href='dashboard.html';
 });
+
+// TABS
+document.getElementById('tab-login').addEventListener('click', () => switchTab('login'));
+document.getElementById('tab-signup').addEventListener('click', () => switchTab('signup'));
 
 function switchTab(tab) {
   document.getElementById('tab-login').classList.toggle('active', tab==='login');
