@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Veraph — Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --dark:#0e0e0d;
+  --dark2:#1a1a18;
+  --surface:#ffffff;
+  --bg:#f8f8f7;
+  --border:rgba(0,0,0,0.08);
+  --border-light:rgba(255,255,255,0.1);
+  --text:#1a1a18;
+  --muted:#6b6b67;
+  --accent:#185FA5;
+  --accent-bg:#E6F1FB;
+  --accent-text:#0C447C;
+  --green:#3B6D11;
+  --green-bg:#EAF3DE;
+  --amber:#854F0B;
+  --amber-bg:#FAEEDA;
+  --purple:#534AB7;
+  --purple-bg:#EEEDFE;
+  --radius:10px;
+  --radius-sm:6px;
+}
+body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;color:var(--text);background:var(--bg);min-height:100vh}
+#auth-check{display:none}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;height:56px;background:var(--dark);border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;padding:0 1.25rem;gap:1rem}
+.logo{font-size:16px;font-weight:600;color:#fff;display:flex;align-items:center;gap:7px;text-decoration:none}
+.logo-dot{width:7px;height:7px;background:#4a8fd4;border-radius:50%}
+nav .spacer{flex:1}
+.user-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);border-radius:20px;padding:5px 12px}
+.user-pill span{font-size:12.5px;color:rgba(255,255,255,0.6)}
+.plan-badge{font-size:11px;background:var(--accent-bg);color:var(--accent-text);padding:2px 8px;border-radius:20px;font-weight:500}
+.btn-signout{background:transparent;border:0.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);padding:5px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:5px}
+.btn-signout:hover{border-color:rgba(255,255,255,0.35);color:#fff}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 56px)}
+aside{width:220px;background:var(--surface);border-right:0.5px solid var(--border);padding:1.25rem 0;display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 1.25rem;cursor:pointer;color:var(--muted);font-size:13.5px;transition:background 0.15s;border-left:2px solid transparent}
+.nav-item i{font-size:18px;flex-shrink:0}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{color:var(--accent);background:var(--accent-bg);border-left-color:var(--accent);font-weight:500}
+.nav-item.locked{opacity:0.45;cursor:not-allowed}
+.nav-section{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);padding:1rem 1.25rem 0.25rem}
+.lock-icon{margin-left:auto;font-size:13px}
+main{flex:1;padding:1.75rem;overflow:auto}
+.tool-header{margin-bottom:1.5rem}
+.tool-header h1{font-size:18px;font-weight:500;margin-bottom:4px}
+.tool-header p{color:var(--muted);font-size:13px}
+
+/* CARDS */
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.25rem}
+.card+.card{margin-top:1rem}
+
+/* INPUTS */
+.input-row{display:flex;gap:8px;margin-bottom:1rem}
+input[type=text],textarea{width:100%;padding:8px 12px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:13.5px;background:var(--bg);color:var(--text);outline:none;font-family:inherit}
+input[type=text]:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg)}
+textarea{resize:vertical;min-height:120px;font-family:monospace;font-size:12.5px}
+button.primary{padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+button.primary:hover{opacity:0.9}
+button.secondary{padding:8px 14px;background:var(--surface);color:var(--text);border:0.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+button.secondary:hover{background:var(--bg)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* KG */
+.kg-entity{display:flex;gap:1rem;align-items:flex-start}
+.kg-img{width:72px;height:72px;border-radius:var(--radius-sm);background:var(--bg);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.kg-img i{font-size:26px;color:var(--muted)}
+.kg-info h2{font-size:16px;font-weight:500;margin-bottom:4px}
+.kg-info .desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.tag{display:inline-block;background:var(--purple-bg);color:var(--purple);font-size:11px;padding:2px 8px;border-radius:20px;margin-right:4px;margin-bottom:4px}
+.score-bar{display:flex;align-items:center;gap:8px;margin-top:8px}
+.score-bar .bar{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;border:0.5px solid var(--border)}
+.score-bar .fill{height:100%;background:var(--accent);border-radius:3px}
+.score-label{font-size:12px;color:var(--muted);white-space:nowrap}
+
+/* SCHEMA */
+.schema-type{background:var(--green-bg);color:var(--green);font-size:12px;padding:4px 12px;border-radius:20px;font-weight:500;display:inline-flex;align-items:center;gap:5px;margin:0 4px 4px 0}
+.validation-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.validation-item:last-child{border-bottom:none}
+.vbadge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.vbadge.ok{background:var(--green-bg);color:var(--green)}
+.vbadge.warn{background:var(--amber-bg);color:var(--amber)}
+.vbadge.error{background:#FCEBEB;color:#A32D2D}
+.val-text{font-size:13px;line-height:1.5}
+.val-text strong{font-weight:500}
+
+/* GSC */
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.metric-card{background:var(--bg);border-radius:var(--radius-sm);padding:12px 14px}
+.metric-card .label{font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em}
+.metric-card .value{font-size:22px;font-weight:500}
+.delta.up{font-size:11px;color:var(--green);margin-top:2px}
+.delta.down{font-size:11px;color:#A32D2D;margin-top:2px}
+.chart-wrap{position:relative;width:100%;height:200px}
+
+/* ENTITY */
+.entity-graph{position:relative;width:100%;height:300px;background:var(--bg);border-radius:var(--radius-sm);overflow:hidden;border:0.5px solid var(--border)}
+.entity-node{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:pointer}
+.entity-node .circle{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:11px;font-weight:500;border:2px solid transparent;transition:transform 0.2s}
+.entity-node:hover .circle{transform:scale(1.1)}
+.entity-node.center .circle{width:68px;height:68px;font-size:13px}
+.entity-node .nlabel{font-size:10px;color:var(--muted);max-width:64px;line-height:1.3}
+.entity-node.center .nlabel{font-size:11px;font-weight:500;color:var(--text)}
+svg.edges{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+
+/* JSON */
+.json-block{background:#f4f3f0;border-radius:var(--radius-sm);padding:12px;font-family:monospace;font-size:11.5px;line-height:1.6;color:#2c2c2a;margin-top:8px;max-height:180px;overflow:auto;border:0.5px solid var(--border);display:none}
+.json-block.open{display:block}
+
+/* UPGRADE */
+.upgrade-banner{background:var(--dark);border-radius:var(--radius);padding:2rem;text-align:center;color:#fff}
+.upgrade-banner h2{font-size:18px;font-weight:500;margin-bottom:8px}
+.upgrade-banner p{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:1.25rem}
+.btn-upgrade{padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:6px}
+
+/* UTILS */
+.divider{height:0.5px;background:var(--border);margin:1rem 0}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted)}
+.empty i{font-size:36px;display:block;margin-bottom:8px}
+.loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;padding:1rem 0}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.api-note{font-size:11.5px;color:var(--muted);background:var(--amber-bg);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:1rem;display:flex;align-items:center;gap:6px}
+.api-note i{color:var(--amber);flex-shrink:0}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.searches-left{font-size:12px;color:var(--muted);margin-top:6px}
+.searches-left span{color:var(--accent);font-weight:500}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html"><div class="logo-dot"></div>Veraph</a>
+  <div class="spacer"></div>
+  <div class="user-pill">
+    <i class="ti ti-user-circle" style="color:rgba(255,255,255,0.4);font-size:16px;"></i>
+    <span id="user-email">Loading…</span>
+    <span class="plan-badge" id="plan-label">Free</span>
+  </div>
+  <button class="btn-signout" onclick="signOut()"><i class="ti ti-logout"></i> Sign out</button>
+</nav>
+
+<div class="layout">
+  <aside>
+    <div class="nav-section">Tools</div>
+    <div class="nav-item active" id="nav-kg" onclick="show('kg')"><i class="ti ti-topology-star-3"></i> Knowledge Graph</div>
+    <div class="nav-item" id="nav-schema" onclick="show('schema')"><i class="ti ti-code"></i> Schema Tester</div>
+    <div class="nav-item locked" id="nav-gsc"><i class="ti ti-chart-line"></i> Search Console<i class="ti ti-lock lock-icon"></i></div>
+    <div class="nav-item locked" id="nav-entity"><i class="ti ti-hierarchy-3"></i> Entity Explorer<i class="ti ti-lock lock-icon"></i></div>
+    <div class="nav-section" style="margin-top:auto;">Account</div>
+    <div class="nav-item" id="nav-upgrade" onclick="show('upgrade')"><i class="ti ti-rocket"></i> Upgrade to Pro</div>
+  </aside>
+
+  <main>
+
+    <!-- KNOWLEDGE GRAPH -->
+    <div id="tool-kg">
+      <div class="tool-header">
+        <h1>Knowledge Graph Explorer</h1>
+        <p>Discover how Google represents any entity — person, brand, or organisation.</p>
+      </div>
+      <div class="card">
+        <div class="input-row">
+          <input type="text" id="kg-query" placeholder="Search entity e.g. Elon Musk, Nike, OpenAI…" onkeydown="if(event.key==='Enter')searchKG()"/>
+          <button class="primary" onclick="searchKG()"><i class="ti ti-search"></i> Search</button>
+        </div>
+        <div class="btn-row">
+          <button class="secondary" onclick="loadKGDemo('Elon Musk')">Sample: Person</button>
+          <button class="secondary" onclick="loadKGDemo('Nike')">Sample: Brand</button>
+          <button class="secondary" onclick="loadKGDemo('OpenAI')">Sample: Organisation</button>
+        </div>
+        <div class="searches-left">Free plan: <span id="searches-count">10</span> searches remaining today</div>
+      </div>
+      <div id="kg-result" style="margin-top:1rem;"></div>
+    </div>
+
+    <!-- SCHEMA TESTER -->
+    <div id="tool-schema" style="display:none;">
+      <div class="tool-header">
+        <h1>Schema Markup Tester</h1>
+        <p>Validate your JSON-LD schema and get structured feedback for search engines.</p>
+      </div>
+      <div class="row">
+        <div class="card" style="flex:1.2;">
+          <div style="font-size:13px;font-weight:500;margin-bottom:8px;">Paste JSON-LD schema</div>
+          <textarea id="schema-input" placeholder='{"@context":"https://schema.org","@type":"Person","name":"…"}'></textarea>
+          <div class="btn-row" style="margin-top:8px;">
+            <button class="primary" onclick="testSchema()"><i class="ti ti-check"></i> Validate</button>
+            <button class="secondary" onclick="loadSampleSchema('person')">Sample: Person</button>
+            <button class="secondary" onclick="loadSampleSchema('article')">Sample: Article</button>
+          </div>
+        </div>
+        <div id="schema-result" class="card" style="flex:1;">
+          <div class="empty"><i class="ti ti-code"></i>Paste a schema and click Validate</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPGRADE -->
+    <div id="tool-upgrade" style="display:none;">
+      <div class="tool-header">
+        <h1>Upgrade to Pro</h1>
+        <p>Unlock all four tools and unlimited searches.</p>
+      </div>
+      <div class="upgrade-banner">
+        <i class="ti ti-rocket" style="font-size:36px;color:#4a8fd4;display:block;margin-bottom:12px;"></i>
+        <h2>Veraph Pro — $29/month</h2>
+        <p>Get unlimited searches, Search Console Insights, Entity Explorer, and saved search history.</p>
+        <button class="btn-upgrade"><i class="ti ti-credit-card"></i> Upgrade to Pro</button>
+      </div>
+      <div class="card" style="margin-top:1rem;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:1rem;">What you get with Pro</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;"><i class="ti ti-check" style="color:var(--green);"></i> Unlimited Knowledge Graph searches</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;"><i class="ti ti-check" style="color:var(--green);"></i> Full Schema Markup Tester</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;"><i class="ti ti-check" style="color:var(--green);"></i> Search Console Insights</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;"><i class="ti ti-check" style="color:var(--green);"></i> Entity Explorer</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;"><i class="ti ti-check" style="color:var(--green);"></i> Saved search history</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;"><i class="ti ti-check" style="color:var(--green);"></i> Priority support</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://lshyqsrwtnlekgpyaduw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5Wpj6mQPR9wHFMkxuDSdvA_JKTbAHXA';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let searchesUsed = 0;
+const FREE_LIMIT = 10;
+
+// AUTH CHECK
+async function initAuth() {
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session) { window.location.href='auth.html'; return; }
+  currentUser = session.user;
+  document.getElementById('user-email').textContent = currentUser.email;
+  loadSearchCount();
+}
+initAuth();
+
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href='auth.html';
+}
+
+// SEARCH COUNT (stored in localStorage per user per day)
+function getTodayKey() {
+  return `veraph_searches_${currentUser?.id}_${new Date().toDateString()}`;
+}
+function loadSearchCount() {
+  const used = parseInt(localStorage.getItem(getTodayKey())||'0');
+  searchesUsed = used;
+  updateSearchCount();
+}
+function incrementSearchCount() {
+  searchesUsed++;
+  localStorage.setItem(getTodayKey(), searchesUsed);
+  updateSearchCount();
+}
+function updateSearchCount() {
+  const remaining = Math.max(0, FREE_LIMIT - searchesUsed);
+  document.getElementById('searches-count').textContent = remaining;
+}
+
+// NAV
+function show(tool) {
+  ['kg','schema','upgrade'].forEach(t => {
+    document.getElementById('tool-'+t).style.display = t===tool?'':'none';
+    const nav = document.getElementById('nav-'+t);
+    if(nav) nav.classList.toggle('active', t===tool);
+  });
+}
+
+// KG
+function loadKGDemo(name) {
+  document.getElementById('kg-query').value = name;
+  searchKG();
+}
+
+async function searchKG() {
+  if(searchesUsed >= FREE_LIMIT) {
+    document.getElementById('kg-result').innerHTML = `
+      <div class="card">
+        <div class="upgrade-banner">
+          <i class="ti ti-lock" style="font-size:28px;color:#4a8fd4;display:block;margin-bottom:10px;"></i>
+          <h2>Daily limit reached</h2>
+          <p>You've used all 10 free searches for today. Upgrade to Pro for unlimited searches.</p>
+          <button class="btn-upgrade" onclick="show('upgrade')"><i class="ti ti-rocket"></i> Upgrade to Pro</button>
+        </div>
+      </div>`;
+    return;
+  }
+  const q = document.getElementById('kg-query').value.trim();
+  if(!q) return;
+  const r = document.getElementById('kg-result');
+  r.innerHTML = `<div class="card"><div class="loading"><div class="spinner"></div>Searching Knowledge Graph…</div></div>`;
+  try {
+    const res = await fetch('/.netlify/functions/knowledge-graph?query='+encodeURIComponent(q));
+    const data = await res.json();
+    const items = data.itemListElement;
+    if(!items||items.length===0){
+      r.innerHTML=`<div class="card"><div class="empty"><i class="ti ti-search"></i>No results found for "${q}"</div></div>`;
+      return;
+    }
+    incrementSearchCount();
+    const entity=items[0].result;
+    const name=entity.name||q;
+    const desc=entity.detailedDescription?.articleBody||entity.description||'No description available.';
+    const types=entity['@type']||[];
+    const score=items[0].resultScore?items[0].resultScore.toFixed(2):'N/A';
+    const pct=Math.min(Math.round((items[0].resultScore||0.5)*100),100);
+    const sameAs=[];
+    if(entity.url)sameAs.push(entity.url);
+    if(entity.detailedDescription?.url)sameAs.push(entity.detailedDescription.url);
+    const raw=JSON.stringify(entity,null,2);
+    r.innerHTML=`
+      <div class="card">
+        <div class="kg-entity">
+          <div class="kg-img"><i class="ti ti-user"></i></div>
+          <div class="kg-info">
+            <h2>${name}</h2>
+            <div>${types.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+            <div class="desc">${desc}</div>
+            <div class="score-bar">
+              <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+              <span class="score-label">Relevance score: ${score}</span>
+            </div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:500;">sameAs links</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          ${sameAs.length?sameAs.map(u=>`<a href="${u}" target="_blank" style="font-size:12.5px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:4px;"><i class="ti ti-external-link" style="font-size:13px;"></i>${u}</a>`).join(''):'<span style="font-size:12.5px;color:var(--muted);">No sameAs links found</span>'}
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:1rem;">
+          <button class="secondary" onclick="toggleJSON()"><i class="ti ti-code"></i> Raw JSON</button>
+        </div>
+        <pre class="json-block" id="json-block">${raw}</pre>
+      </div>`;
+  } catch(err) {
+    r.innerHTML=`<div class="card"><div class="empty"><i class="ti ti-alert-circle"></i>Could not connect. Check your API key in Netlify settings.</div></div>`;
+  }
+}
+
+function toggleJSON(){document.getElementById('json-block').classList.toggle('open')}
+
+// SCHEMA
+const schemaSamples={
+  person:`{\n  "@context": "https://schema.org",\n  "@type": "Person",\n  "name": "Jane Doe",\n  "url": "https://janedoe.com",\n  "image": "https://janedoe.com/photo.jpg",\n  "jobTitle": "Marketing Consultant",\n  "sameAs": [\n    "https://twitter.com/janedoe",\n    "https://linkedin.com/in/janedoe"\n  ]\n}`,
+  article:`{\n  "@context": "https://schema.org",\n  "@type": "Article",\n  "headline": "How to Build Your Personal Brand",\n  "author": { "@type": "Person", "name": "Jane Doe" },\n  "datePublished": "2025-01-15",\n  "image": "https://janedoe.com/article.jpg"\n}`
+};
+function loadSampleSchema(t){document.getElementById('schema-input').value=schemaSamples[t]}
+function testSchema(){
+  const v=document.getElementById('schema-input').value.trim();
+  const el=document.getElementById('schema-result');
+  if(!v){el.innerHTML=`<div class="empty"><i class="ti ti-alert-circle"></i>No schema to validate</div>`;return}
+  el.innerHTML=`<div class="loading"><div class="spinner"></div>Validating…</div>`;
+  setTimeout(()=>{
+    let parsed,types=[],checks=[];
+    try{
+      parsed=JSON.parse(v);
+      const t=parsed['@type']||'Unknown';
+      types=Array.isArray(t)?t:[t];
+      const hasCtx=!!parsed['@context'];
+      const hasName=!!parsed.name||!!parsed.headline;
+      const hasSameAs=!!parsed.sameAs;
+      const hasImage=!!parsed.image;
+      checks=[
+        {status:hasCtx?'ok':'error',title:'@context defined',msg:hasCtx?'schema.org context found — good.':'Missing @context. Add "https://schema.org".'},
+        {status:'ok',title:'@type present',msg:`Type is "${types.join(', ')}" — recognised by Google.`},
+        {status:hasName?'ok':'warn',title:'Name / headline',msg:hasName?'Name field found.':'No name or headline field found.'},
+        {status:hasImage?'ok':'warn',title:'Image property',msg:hasImage?'Image URL present.':'No image found. Improves rich result eligibility.'},
+        {status:hasSameAs?'ok':'warn',title:'sameAs links',msg:hasSameAs?'sameAs links found.':'No sameAs links. Add Wikipedia or Wikidata URLs.'}
+      ];
+    }catch(e){
+      el.innerHTML=`<div style="color:#A32D2D;display:flex;align-items:center;gap:6px;font-size:13px;"><i class="ti ti-alert-circle"></i>Invalid JSON: ${e.message}</div>`;
+      return;
+    }
+    const err=checks.filter(c=>c.status==='error').length;
+    const warn=checks.filter(c=>c.status==='warn').length;
+    el.innerHTML=`
+      <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Detected Types</div>
+      <div style="margin-bottom:1rem;">${types.map(t=>`<span class="schema-type"><i class="ti ti-check"></i>${t}</span>`).join('')}</div>
+      <div class="divider"></div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:6px;">Results <span style="font-weight:400;color:var(--muted);font-size:12px;margin-left:8px;">${err} errors · ${warn} warnings</span></div>
+      ${checks.map(c=>`<div class="validation-item">
+        <span class="vbadge ${c.status}">${c.status==='ok'?'Pass':c.status==='warn'?'Warn':'Fail'}</span>
+        <div class="val-text"><strong>${c.title}</strong><br>${c.msg}</div>
+      </div>`).join('')}`;
+  },700);
+}
+</script>
+</body>
+</html>
