@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Veraph — Sign In</title>
 <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -17,49 +16,53 @@
   --muted:#6b6b67;
   --accent:#185FA5;
   --accent-bg:#E6F1FB;
-  --radius:10px;
+  --green:#3B6D11;
+  --green-bg:#EAF3DE;
   --radius-sm:6px;
+  --radius-lg:16px;
 }
 body{font-family:system-ui,-apple-system,sans-serif;font-size:15px;color:var(--text);background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
-header{height:56px;background:var(--dark);display:flex;align-items:center;padding:0 2rem}
+header{height:56px;background:var(--dark);display:flex;align-items:center;padding:0 2rem;flex-shrink:0}
 .logo{font-size:17px;font-weight:600;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px}
 .logo-dot{width:8px;height:8px;background:#4a8fd4;border-radius:50%}
 .auth-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
-.auth-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:2.5rem;width:100%;max-width:420px}
+.auth-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:2.5rem;width:100%;max-width:420px}
 .auth-title{font-size:22px;font-weight:600;margin-bottom:6px;letter-spacing:-0.3px}
 .auth-sub{font-size:13.5px;color:var(--muted);margin-bottom:2rem}
-.tabs{display:flex;border-bottom:0.5px solid var(--border);margin-bottom:1.75rem}
-.tab{flex:1;text-align:center;padding:9px;font-size:13.5px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs{display:flex;border-bottom:0.5px solid var(--border);margin-bottom:1.75rem;user-select:none}
+.tab{flex:1;text-align:center;padding:10px;font-size:13.5px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color 0.15s}
+.tab:hover{color:var(--text)}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
 .field{margin-bottom:1rem}
-.field label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text)}
-.field input{width:100%;padding:10px 12px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--bg);color:var(--text);outline:none;font-family:inherit}
+.field label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
+.field input{width:100%;padding:10px 12px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--bg);color:var(--text);outline:none;font-family:inherit;transition:border-color 0.15s}
 .field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
-.btn-auth{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14.5px;font-weight:500;cursor:pointer;margin-top:0.5rem;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-auth{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14.5px;font-weight:500;cursor:pointer;margin-top:0.5rem;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.15s}
 .btn-auth:hover{opacity:0.9}
-.btn-auth:disabled{opacity:0.6;cursor:not-allowed}
+.btn-auth:disabled{opacity:0.5;cursor:not-allowed}
 .msg{font-size:13px;padding:10px 14px;border-radius:var(--radius-sm);margin-top:1rem;display:none}
 .msg.error{background:#FCEBEB;color:#A32D2D;display:block}
-.msg.success{background:#EAF3DE;color:#3B6D11;display:block}
-.divider{display:flex;align-items:center;gap:10px;margin:1.25rem 0;color:var(--muted);font-size:12px}
-.divider::before,.divider::after{content:'';flex:1;height:0.5px;background:var(--border)}
+.msg.success{background:var(--green-bg);color:var(--green);display:block}
 .plan-note{background:var(--accent-bg);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:#0C447C;margin-bottom:1.25rem;display:flex;gap:8px;align-items:flex-start}
 .plan-note i{flex-shrink:0;margin-top:1px}
-.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+
 <header>
   <a class="logo" href="index.html"><div class="logo-dot"></div>Veraph</a>
 </header>
+
 <div class="auth-wrap">
   <div class="auth-card">
     <div class="auth-title">Welcome to Veraph</div>
     <div class="auth-sub">The search intelligence platform for personal brands.</div>
+
     <div class="tabs">
-      <div class="tab active" id="tab-login" style="cursor:pointer;">Sign in</div>
-      <div class="tab" id="tab-signup" style="cursor:pointer;">Create account</div>
+      <div class="tab active" id="tab-login">Sign in</div>
+      <div class="tab" id="tab-signup">Create account</div>
     </div>
 
     <!-- LOGIN -->
@@ -70,9 +73,9 @@ header{height:56px;background:var(--dark);display:flex;align-items:center;paddin
       </div>
       <div class="field">
         <label>Password</label>
-        <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleLogin()"/>
+        <input type="password" id="login-password" placeholder="••••••••"/>
       </div>
-      <button class="btn-auth" id="btn-login" onclick="handleLogin()">
+      <button class="btn-auth" id="btn-login">
         <i class="ti ti-login"></i> Sign in
       </button>
       <div class="msg" id="login-msg"></div>
@@ -82,7 +85,7 @@ header{height:56px;background:var(--dark);display:flex;align-items:center;paddin
     <div id="form-signup" style="display:none;">
       <div class="plan-note">
         <i class="ti ti-info-circle"></i>
-        <span>Start with a free account. Upgrade to Pro anytime for unlimited access to all tools.</span>
+        <span>Start free. Upgrade to Pro anytime for unlimited access to all tools.</span>
       </div>
       <div class="field">
         <label>Email address</label>
@@ -90,9 +93,9 @@ header{height:56px;background:var(--dark);display:flex;align-items:center;paddin
       </div>
       <div class="field">
         <label>Password</label>
-        <input type="password" id="signup-password" placeholder="Min. 8 characters" onkeydown="if(event.key==='Enter')handleSignup()"/>
+        <input type="password" id="signup-password" placeholder="Min. 8 characters"/>
       </div>
-      <button class="btn-auth" id="btn-signup" onclick="handleSignup()">
+      <button class="btn-auth" id="btn-signup">
         <i class="ti ti-user-plus"></i> Create free account
       </button>
       <div class="msg" id="signup-msg"></div>
@@ -100,72 +103,83 @@ header{height:56px;background:var(--dark);display:flex;align-items:center;paddin
   </div>
 </div>
 
-<script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
 const SUPABASE_URL = 'https://lshyqsrwtnlekgpyaduw.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_5Wpj6mQPR9wHFMkxuDSdvA_JKTbAHXA';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // redirect if already logged in
-supabase.auth.getSession().then(({data:{session}})=>{
-  if(session) window.location.href='dashboard.html';
-});
+const { data: { session } } = await sb.auth.getSession();
+if (session) window.location.href = 'dashboard.html';
 
 // TABS
 document.getElementById('tab-login').addEventListener('click', () => switchTab('login'));
 document.getElementById('tab-signup').addEventListener('click', () => switchTab('signup'));
 
 function switchTab(tab) {
-  document.getElementById('tab-login').classList.toggle('active', tab==='login');
-  document.getElementById('tab-signup').classList.toggle('active', tab==='signup');
-  document.getElementById('form-login').style.display = tab==='login' ? 'block' : 'none';
-  document.getElementById('form-signup').style.display = tab==='signup' ? 'block' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+  document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('form-signup').style.display = tab === 'signup' ? 'block' : 'none';
 }
 
+// LOGIN
+document.getElementById('btn-login').addEventListener('click', handleLogin);
+document.getElementById('login-password').addEventListener('keydown', e => { if(e.key==='Enter') handleLogin(); });
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const msg = document.getElementById('login-msg');
+  if(!email || !password) { showMsg(msg, 'Please enter your email and password.', 'error'); return; }
+  setLoading('btn-login', true);
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error) {
+    showMsg(msg, error.message, 'error');
+    setLoading('btn-login', false);
+  } else {
+    showMsg(msg, 'Signed in! Redirecting…', 'success');
+    setTimeout(() => window.location.href = 'dashboard.html', 800);
+  }
+}
+
+// SIGNUP
+document.getElementById('btn-signup').addEventListener('click', handleSignup);
+document.getElementById('signup-password').addEventListener('keydown', e => { if(e.key==='Enter') handleSignup(); });
+
+async function handleSignup() {
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const msg = document.getElementById('signup-msg');
+  if(!email || !password) { showMsg(msg, 'Please fill in all fields.', 'error'); return; }
+  if(password.length < 8) { showMsg(msg, 'Password must be at least 8 characters.', 'error'); return; }
+  setLoading('btn-signup', true);
+  const { error } = await sb.auth.signUp({ email, password });
+  if(error) {
+    showMsg(msg, error.message, 'error');
+    setLoading('btn-signup', false);
+  } else {
+    showMsg(msg, '✓ Account created! You can now sign in.', 'success');
+    setLoading('btn-signup', false);
+    setTimeout(() => switchTab('login'), 2000);
+  }
+}
+
+// HELPERS
+function showMsg(el, text, type) {
+  el.textContent = text;
+  el.className = 'msg ' + type;
+}
 function setLoading(btnId, loading) {
   const btn = document.getElementById(btnId);
   btn.disabled = loading;
   btn.innerHTML = loading
     ? '<div class="spinner"></div> Please wait…'
-    : btnId==='btn-login'
+    : btnId === 'btn-login'
       ? '<i class="ti ti-login"></i> Sign in'
       : '<i class="ti ti-user-plus"></i> Create free account';
-}
-
-function showMsg(id, text, type) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.className = 'msg ' + type;
-}
-
-async function handleLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  if(!email||!password){showMsg('login-msg','Please enter your email and password.','error');return;}
-  setLoading('btn-login', true);
-  const {error} = await supabase.auth.signInWithPassword({email, password});
-  if(error){
-    showMsg('login-msg', error.message, 'error');
-    setLoading('btn-login', false);
-  } else {
-    showMsg('login-msg', 'Signed in! Redirecting…', 'success');
-    setTimeout(()=>window.location.href='dashboard.html', 800);
-  }
-}
-
-async function handleSignup() {
-  const email = document.getElementById('signup-email').value.trim();
-  const password = document.getElementById('signup-password').value;
-  if(!email||!password){showMsg('signup-msg','Please fill in all fields.','error');return;}
-  if(password.length<8){showMsg('signup-msg','Password must be at least 8 characters.','error');return;}
-  setLoading('btn-signup', true);
-  const {error} = await supabase.auth.signUp({email, password});
-  if(error){
-    showMsg('signup-msg', error.message, 'error');
-    setLoading('btn-signup', false);
-  } else {
-    showMsg('signup-msg', 'Account created! Please check your email to confirm, then sign in.', 'success');
-    setLoading('btn-signup', false);
-  }
 }
 </script>
 </body>
