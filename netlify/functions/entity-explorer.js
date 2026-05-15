@@ -1,3 +1,5 @@
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
 exports.handler = async function (event) {
   const query = event.queryStringParameters?.query;
 
@@ -25,6 +27,8 @@ exports.handler = async function (event) {
     const entity = searchData.search[0];
     const entityId = entity.id;
 
+    await delay(300);
+
     // Step 2 — fetch entity details and claims
     const detailUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${entityId}&languages=en&props=labels|descriptions|claims|sitelinks&format=json&origin=*`;
     const detailRes = await fetch(detailUrl);
@@ -44,47 +48,53 @@ exports.handler = async function (event) {
       P106: "Occupation",
       P27:  "Country of citizenship",
       P19:  "Place of birth",
-      P569: "Date of birth",
-      P21:  "Gender",
       P108: "Employer",
       P69:  "Educated at",
       P463: "Member of",
       P101: "Field of work",
       P39:  "Position held",
-      P135: "Movement",
-      P17:  "Country",
-      P131: "Located in",
-      P571: "Inception",
       P452: "Industry",
       P169: "CEO",
       P112: "Founded by",
+      P17:  "Country",
+      P571: "Inception",
     };
 
     const connections = [];
+
+    // collect all entity IDs to fetch in one batch
+    const entityRefs = [];
     for (const [prop, label] of Object.entries(propertyMap)) {
-      if (claims[prop]) {
-        const claim = claims[prop][0];
-        const val = claim?.mainsnak?.datavalue?.value;
-        if (val) {
-          if (typeof val === "object" && val.id) {
-            // it's an entity reference — fetch its label
-            try {
-              const labelUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${val.id}&languages=en&props=labels&format=json&origin=*`;
-              const labelRes = await fetch(labelUrl);
-              const labelData = await labelRes.json();
-              const connLabel = labelData.entities[val.id]?.labels?.en?.value;
-              if (connLabel) {
-                connections.push({ property: label, value: connLabel, entityId: val.id });
-              }
-            } catch (_) {}
-          } else if (typeof val === "string") {
-            connections.push({ property: label, value: val, entityId: null });
-          } else if (val.time) {
-            connections.push({ property: label, value: val.time.slice(1, 11), entityId: null });
-          }
+      if (connections.length >= 7) break;
+      if (!claims[prop]) continue;
+      const claim = claims[prop][0];
+      const val = claim?.mainsnak?.datavalue?.value;
+      if (!val) continue;
+
+      if (typeof val === "object" && val.id) {
+        entityRefs.push({ prop, label, id: val.id });
+      } else if (typeof val === "string") {
+        connections.push({ property: label, value: val, entityId: null });
+      } else if (val.time) {
+        connections.push({ property: label, value: val.time.slice(1, 11), entityId: null });
+      }
+    }
+
+    // batch fetch all entity labels in one request
+    if (entityRefs.length > 0) {
+      await delay(300);
+      const ids = entityRefs.map(r => r.id).join('|');
+      const batchUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids}&languages=en&props=labels&format=json&origin=*`;
+      const batchRes = await fetch(batchUrl);
+      const batchData = await batchRes.json();
+
+      for (const ref of entityRefs) {
+        if (connections.length >= 7) break;
+        const connLabel = batchData.entities?.[ref.id]?.labels?.en?.value;
+        if (connLabel) {
+          connections.push({ property: ref.label, value: connLabel, entityId: ref.id });
         }
       }
-      if (connections.length >= 7) break;
     }
 
     return {
