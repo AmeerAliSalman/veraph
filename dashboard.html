@@ -444,7 +444,7 @@ function testSchema(){
       el.innerHTML=`<div style="color:#A32D2D;display:flex;align-items:center;gap:6px;font-size:13px;"><i class="ti ti-alert-circle"></i>Invalid JSON: ${e.message}</div>`;
       return;
     }
-    const err=checks.filter(c=>c.status==='error').length;
+    const err=checks.filter(c=>c.status==='error').length; 
     const warn=checks.filter(c=>c.status==='warn').length;
     el.innerHTML=`
       <div style="font-size:13px;font-weight:500;margin-bottom:10px;">Detected Types</div>
