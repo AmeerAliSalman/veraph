@@ -160,7 +160,7 @@ svg.edges{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:n
     <div class="nav-item active" id="nav-kg" onclick="show('kg')"><i class="ti ti-topology-star-3"></i> Knowledge Graph</div>
     <div class="nav-item" id="nav-schema" onclick="show('schema')"><i class="ti ti-code"></i> Schema Tester</div>
     <div class="nav-item locked" id="nav-gsc"><i class="ti ti-chart-line"></i> Search Console<i class="ti ti-lock lock-icon"></i></div>
-    <div class="nav-item locked" id="nav-entity"><i class="ti ti-hierarchy-3"></i> Entity Explorer<i class="ti ti-lock lock-icon"></i></div>
+    <div class="nav-item" id="nav-entity" onclick="show('entity')"><i class="ti ti-hierarchy-3"></i> Entity Explorer</div>
     <div class="nav-section" style="margin-top:auto;">Account</div>
     <div class="nav-item" id="nav-upgrade" onclick="show('upgrade')"><i class="ti ti-rocket"></i> Upgrade to Pro</div>
   </aside>
@@ -210,7 +210,25 @@ svg.edges{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:n
       </div>
     </div>
 
-    <!-- UPGRADE -->
+    <!-- ENTITY EXPLORER -->
+    <div id="tool-entity" style="display:none;">
+      <div class="tool-header">
+        <h1>Entity Explorer</h1>
+        <p>Map real entity relationships across Wikidata and DBpedia.</p>
+      </div>
+      <div class="card">
+        <div class="input-row">
+          <input type="text" id="entity-query" placeholder="Search entity e.g. Elon Musk, Tesla, OpenAI…" onkeydown="if(event.key==='Enter')exploreEntity()"/>
+          <button class="primary" onclick="exploreEntity()"><i class="ti ti-hierarchy-3"></i> Explore</button>
+        </div>
+        <div class="btn-row">
+          <button class="secondary" onclick="loadEntityDemo('Elon Musk')">Sample: Person</button>
+          <button class="secondary" onclick="loadEntityDemo('Tesla')">Sample: Company</button>
+          <button class="secondary" onclick="loadEntityDemo('OpenAI')">Sample: Organisation</button>
+        </div>
+      </div>
+      <div id="entity-result" style="margin-top:1rem;"></div>
+    </div>
     <div id="tool-upgrade" style="display:none;">
       <div class="tool-header">
         <h1>Upgrade to Pro</h1>
@@ -283,8 +301,9 @@ function updateSearchCount() {
 
 // NAV
 function show(tool) {
-  ['kg','schema','upgrade'].forEach(t => {
-    document.getElementById('tool-'+t).style.display = t===tool?'':'none';
+  ['kg','schema','entity','upgrade'].forEach(t => {
+    const el = document.getElementById('tool-'+t);
+    if(el) el.style.display = t===tool?'':'none';
     const nav = document.getElementById('nav-'+t);
     if(nav) nav.classList.toggle('active', t===tool);
   });
