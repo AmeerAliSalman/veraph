@@ -300,7 +300,8 @@ async function saveSearch(tool, query, result_label) {
       user_id: currentUser.id,
       tool,
       query,
-      result_label
+      result_label,
+      searched_at: new Date().toISOString()
     });
     loadHistory();
   } catch(err) {
@@ -315,7 +316,7 @@ async function loadHistory() {
       .from('search_history')
       .select('*')
       .eq('user_id', currentUser.id)
-      .order('created_at', { ascending: false })
+      .order('searched_at', { ascending: false })
       .limit(8);
     if(error) return;
     const list = document.getElementById('history-list');
