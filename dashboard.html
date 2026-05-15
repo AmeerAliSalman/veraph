@@ -137,6 +137,8 @@ svg.edges{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:n
     <div class="nav-item" id="nav-schema"><i class="ti ti-code"></i> Schema Tester</div>
     <div class="nav-item" id="nav-entity"><i class="ti ti-hierarchy-3"></i> Entity Explorer</div>
     <div class="nav-item locked" id="nav-gsc"><i class="ti ti-chart-line"></i> Search Console<i class="ti ti-lock lock-icon"></i></div>
+    <div class="nav-section">Recent Searches</div>
+    <div id="history-list" style="display:flex;flex-direction:column;gap:2px;"></div>
     <div class="nav-section" style="margin-top:auto;">Account</div>
     <div class="nav-item" id="nav-upgrade"><i class="ti ti-rocket"></i> Upgrade to Pro</div>
   </aside>
@@ -249,6 +251,7 @@ async function initAuth() {
   currentUser = session.user;
   document.getElementById('user-email').textContent = currentUser.email;
   loadSearchCount();
+  loadHistory();
 }
 initAuth();
 
@@ -289,7 +292,61 @@ function updateSearchCount(){
   document.getElementById('searches-count').textContent = remaining;
 }
 
-// ── KNOWLEDGE GRAPH ───────────────────────────────────
+// ── SEARCH HISTORY ────────────────────────────────────
+async function saveSearch(tool, query, result_label) {
+  if(!currentUser) return;
+  try {
+    await sb.from('search_history').insert({
+      user_id: currentUser.id,
+      tool,
+      query,
+      result_label
+    });
+    loadHistory();
+  } catch(err) {
+    console.error('Failed to save search:', err);
+  }
+}
+
+async function loadHistory() {
+  if(!currentUser) return;
+  try {
+    const { data, error } = await sb
+      .from('search_history')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(8);
+    if(error) return;
+    const list = document.getElementById('history-list');
+    if(!data || data.length === 0) {
+      list.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:4px 1.25rem;">No searches yet</div>`;
+      return;
+    }
+    list.innerHTML = data.map(h => `
+      <div class="nav-item history-item" data-tool="${h.tool}" data-query="${h.query}" style="font-size:12px;padding:7px 1.25rem;gap:7px;">
+        <i class="ti ${h.tool==='kg'?'ti-topology-star-3':'ti-hierarchy-3'}" style="font-size:14px;flex-shrink:0;"></i>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.query}</span>
+      </div>`).join('');
+    document.querySelectorAll('.history-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const tool = el.dataset.tool;
+        const query = el.dataset.query;
+        if(tool === 'kg') {
+          show('kg');
+          document.getElementById('kg-query').value = query;
+          searchKG();
+        } else if(tool === 'entity') {
+          show('entity');
+          document.getElementById('entity-query').value = query;
+          exploreEntity();
+        }
+      });
+    });
+  } catch(err) {
+    console.error('Failed to load history:', err);
+  }
+}
 document.getElementById('btn-kg-search').addEventListener('click', searchKG);
 document.getElementById('kg-query').addEventListener('keydown', e => { if(e.key==='Enter') searchKG(); });
 document.getElementById('kg-demo-person').addEventListener('click', () => { document.getElementById('kg-query').value='Elon Musk'; searchKG(); });
@@ -316,6 +373,7 @@ async function searchKG() {
     const items = data.itemListElement;
     if(!items||items.length===0){r.innerHTML=`<div class="card"><div class="empty"><i class="ti ti-search"></i>No results found for "${q}"</div></div>`;return;}
     incrementSearchCount();
+    await saveSearch('kg', q, entity.name || q);
     const entity=items[0].result;
     const name=entity.name||q;
     const desc=entity.detailedDescription?.articleBody||entity.description||'No description available.';
@@ -412,6 +470,7 @@ async function exploreEntity() {
     const res = await fetch('/.netlify/functions/entity-explorer?query='+encodeURIComponent(q));
     const data = await res.json();
     if(!data.found){r.innerHTML=`<div class="card"><div class="empty"><i class="ti ti-search"></i>No entity found for "${q}" on Wikidata.</div></div>`;return;}
+    await saveSearch('entity', q, data.label);
     const colors=[
       {bg:'rgba(24,95,165,0.15)',border:'#185FA5',text:'#4a8fd4'},
       {bg:'rgba(59,109,17,0.15)',border:'#3B6D11',text:'#6aab20'},
